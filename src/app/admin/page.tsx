@@ -55,6 +55,9 @@ export default function AdminDashboard() {
         // We set document background but with slightly more transparency if it's admin
         document.body.style.background = currentVars['--bg'];
         document.body.style.color = currentVars['--text'];
+        // Update root variables for global components
+        document.documentElement.style.setProperty('--bg', currentVars['--bg']);
+        document.documentElement.style.setProperty('--accent', currentVars['--accent']);
       }
     }
   }, [settings?.theme]);
@@ -104,10 +107,19 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#03050a] text-slate-200">
-      {/* Live Admin Background */}
-      <div className="admin-live-bg" />
-      <div className="admin-grid-overlay" />
+    <div className="min-h-screen text-slate-200 relative overflow-x-hidden">
+      {/* Premium Admin Background Image */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <img 
+          src="/admin-bg.jpg" 
+          className="w-full h-full object-cover opacity-40 mix-blend-luminosity scale-105"
+          alt="background"
+          style={{ filter: 'contrast(1.2) brightness(0.8)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+        <div className="absolute inset-0 bg-[#03050a]/40" />
+      </div>
+      <div className="admin-grid-overlay opacity-20" />
 
       <header className="header-bar">
         <div className="flex items-center gap-3">
@@ -180,11 +192,62 @@ export default function AdminDashboard() {
                   <StatCard icon={UserCheck} label="Approved" value={approved} color="132,204,22" />
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <StatCard icon={Calendar} label="Upcoming Meetings" value={upcomingMeetings} color="34,211,238" />
-                  <StatCard icon={Activity} label="Live Workforce" value={liveCount} color="34,197,94" sub={`${liveCount} employees currently active`} />
-                  <StatCard icon={Activity} label="Tasks Submitted" value={submittedTasks} color="217,70,239" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Workforce Attendance Analytics */}
+                  <div className="glass-card p-6 border-cyan-400/10">
+                    <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                      <Activity size={16} className="text-cyan-400" /> Workforce Attendance
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/2 border border-white/5">
+                        <div>
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Present Today</p>
+                          <p className="text-lg font-black text-white">{liveCount} / {approved}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                          <UserCheck size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/2 border border-white/5">
+                        <div>
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Engagement Rate</p>
+                          <p className="text-lg font-black text-white">{approved > 0 ? Math.round((liveCount / approved) * 100) : 0}%</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                          <Activity size={20} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Task Velocity Analytics */}
+                  <div className="glass-card p-6 border-fuchsia-400/10">
+                    <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                      <ClipboardList size={16} className="text-fuchsia-400" /> System Activity
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/2 border border-white/5">
+                        <div>
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Awaiting Review</p>
+                          <p className="text-lg font-black text-white">{submittedTasks}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                          <AlertCircle size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/2 border border-white/5">
+                        <div>
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Critical Deadlines</p>
+                          <p className="text-lg font-black text-white">{tasks.filter(t => t.status === 'OPEN' && new Date(t.deadline) < new Date()).length}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                          <Activity size={20} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
                 {liveCount > 0 && (
                   <div className="glass-card p-5 border-emerald-500/20">
                     <h3 className="font-bold text-emerald-400 text-sm mb-3 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Now</h3>

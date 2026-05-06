@@ -171,7 +171,15 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white">{emp?.name}</h3>
-                        <p className="text-white/40 text-[10px] font-mono tracking-widest uppercase">ID: {emp?.id}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-white/40 text-[10px] font-mono tracking-widest uppercase">ID: {emp?.id}</p>
+                          <button 
+                            onClick={() => { navigator.clipboard.writeText(emp?.id || ''); setSaved(true); setTimeout(() => setSaved(false), 1000); }}
+                            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold uppercase"
+                          >
+                            Copy
+                          </button>
+                        </div>
                         <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
                           ${emp?.role === 'founding piller' ? 'role-piller' : emp?.role === 'Team leader' ? 'role-leader' : 'role-employee'}`}>
                           <Shield size={10} /> {emp?.role}
@@ -218,14 +226,14 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                     <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Lock size={14} className="text-amber-400" /> Security & Auth</h3>
                     <div className="space-y-3">
                       <Toggle 
-                        active={true} 
-                        onClick={() => {}} 
+                        active={settings.twoFactor} 
+                        onClick={() => updateSettings(employeeId, { twoFactor: !settings.twoFactor })} 
                         label="Two-Factor Authentication (2FA)" 
                         desc="Secure your account with an authenticator app."
                       />
                       <Toggle 
-                        active={false} 
-                        onClick={() => {}} 
+                        active={settings.biometrics} 
+                        onClick={() => updateSettings(employeeId, { biometrics: !settings.biometrics })} 
                         label="Biometric Verification" 
                         desc="Use fingerprint or face ID to unlock the dashboard."
                       />
@@ -283,7 +291,11 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">System Timezone</label>
                         <select 
                           value={settings.localization.timezone}
-                          onChange={(e) => updateSettings(employeeId, { localization: { ...settings.localization, timezone: e.target.value } })}
+                          onChange={(e) => {
+                            updateSettings(employeeId, { localization: { ...settings.localization, timezone: e.target.value } });
+                            setSaved(true);
+                            setTimeout(() => setSaved(false), 2000);
+                          }}
                           className="cyber-input"
                         >
                           <option>UTC+5:30 (India Standard Time)</option>
@@ -296,7 +308,11 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">System Language</label>
                         <select 
                           value={settings.localization.language}
-                          onChange={(e) => updateSettings(employeeId, { localization: { ...settings.localization, language: e.target.value } })}
+                          onChange={(e) => {
+                            updateSettings(employeeId, { localization: { ...settings.localization, language: e.target.value } });
+                            setSaved(true);
+                            setTimeout(() => setSaved(false), 2000);
+                          }}
                           className="cyber-input"
                         >
                           <option>English (US)</option>
@@ -489,7 +505,11 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                             <h4 className="text-sm font-bold text-white mb-1">Activity Log Visibility</h4>
                             <p className="text-white/40 text-xs">Allow admins to see your real-time status and module activity.</p>
                           </div>
-                          <Toggle active={true} onClick={() => {}} label="" />
+                          <Toggle 
+                            active={settings.activityVisibility} 
+                            onClick={() => updateSettings(employeeId, { activityVisibility: !settings.activityVisibility })} 
+                            label="" 
+                          />
                         </div>
                       </div>
 

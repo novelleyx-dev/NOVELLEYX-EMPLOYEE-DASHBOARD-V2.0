@@ -147,6 +147,9 @@ export interface EmployeeSettings {
   };
   profilePhoto?: string;
   bio?: string;
+  twoFactor: boolean;
+  biometrics: boolean;
+  activityVisibility: boolean;
 }
 
 export type SessionUser =
@@ -239,7 +242,10 @@ const DEFAULT_SETTINGS: EmployeeSettings = {
   dndMode: { enabled: false, start: '22:00', end: '08:00' },
   localization: { timezone: 'UTC+5:30', language: 'English (US)' },
   landingPage: 'profile',
-  integrations: { slack: false, teams: false, github: false, figma: false, notion: false }
+  integrations: { slack: false, teams: false, github: false, figma: false, notion: false },
+  twoFactor: true,
+  biometrics: false,
+  activityVisibility: true
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
