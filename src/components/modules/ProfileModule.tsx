@@ -81,8 +81,15 @@ export default function ProfileModule({ employeeId }: Props) {
               </div>
             </div>
             <h3 className="text-2xl font-black text-white tracking-tight">{emp.name}</h3>
-            <p className="text-cyan-400/80 text-sm font-semibold mt-1 uppercase tracking-wider">{emp.role || 'Onboarding'}</p>
-            <p className="text-white/30 text-[10px] mt-1">{emp.department || 'General'}</p>
+            <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mx-auto
+              ${emp.role === 'founding piller' ? 'role-piller' : 
+                emp.role === 'Team leader' ? 'role-leader' : 
+                emp.role === 'HR' ? 'role-hr' : 
+                emp.role === 'intern' ? 'role-intern' :
+                emp.role === 'fresher' ? 'role-fresher' : 'role-employee'}`}>
+              <Shield size={10} /> {emp.role}
+            </div>
+            <p className="text-white/30 text-[10px] mt-2">{emp.department || 'General'}</p>
 
             <div className="mt-6 pt-6 border-t border-white/5">
               <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] mb-2">Secure Access Key</p>
@@ -119,7 +126,15 @@ export default function ProfileModule({ employeeId }: Props) {
                   <p className="text-sm text-white font-semibold">
                     {label === 'Account Status'
                       ? <span className={value === 'APPROVED' ? 'badge-approved' : value === 'PENDING' ? 'badge-pending' : 'badge-rejected'}>{value}</span>
-                      : value
+                      : label === 'Role' ? (
+                        <span className={`role-badge ${
+                          value === 'founding piller' ? 'role-piller' : 
+                          value === 'Team leader' ? 'role-leader' : 
+                          value === 'HR' ? 'role-hr' : 
+                          value === 'intern' ? 'role-intern' :
+                          value === 'fresher' ? 'role-fresher' : 'role-employee'
+                        }`}>{value}</span>
+                      ) : value
                     }
                   </p>
                 </div>

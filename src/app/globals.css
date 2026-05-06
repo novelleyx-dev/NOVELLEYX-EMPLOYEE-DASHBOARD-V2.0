@@ -167,6 +167,41 @@ body {
   text-shadow: 0 0 10px rgba(132, 204, 22, 0.8), 0 0 20px rgba(132, 204, 22, 0.4);
 }
 
+/* Designation Specific Styles */
+.role-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-width: 1px;
+}
+
+/* Founding Piller - Gold */
+.role-piller { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.1); }
+.role-grad-piller { background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(217, 119, 6, 0.1)); }
+
+/* Employee - Cyan */
+.role-employee { color: #22d3ee; border-color: rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.1); }
+.role-grad-employee { background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(8, 145, 178, 0.1)); }
+
+/* Intern - Lime */
+.role-intern { color: #84cc16; border-color: rgba(132, 204, 22, 0.3); background: rgba(132, 204, 22, 0.1); }
+.role-grad-intern { background: linear-gradient(135deg, rgba(132, 204, 22, 0.2), rgba(77, 124, 15, 0.1)); }
+
+/* Fresher - Emerald */
+.role-fresher { color: #10b981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1); }
+.role-grad-fresher { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); }
+
+/* HR - Fuchsia */
+.role-hr { color: #d946ef; border-color: rgba(217, 70, 239, 0.3); background: rgba(217, 70, 239, 0.1); }
+.role-grad-hr { background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(192, 38, 211, 0.1)); }
+
+/* Team Leader - Indigo */
+.role-leader { color: #6366f1; border-color: rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.1); }
+.role-grad-leader { background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.1)); }
+
 /* Header bar */
 .header-bar {
   position: fixed;

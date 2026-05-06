@@ -230,8 +230,15 @@ export default function AdminDashboard() {
                                   <div><p className="font-semibold text-white text-sm">{emp.name}</p><p className="text-xs text-white/40">{emp.email}</p></div>
                                 </div>
                               </td>
-                              <td><span className="text-xs font-semibold text-white/60 bg-white/5 px-2 py-1 rounded-md">{emp.department || '—'}</span></td>
-                              <td className="hidden md:table-cell"><span className="font-mono text-xs text-cyan-400/60 tracking-widest">****-****-{emp.pin.slice(-4)}</span></td>
+                              <td>
+                                <span className={`role-badge ${
+                                  emp.role === 'founding piller' ? 'role-piller' : 
+                                  emp.role === 'Team leader' ? 'role-leader' : 
+                                  emp.role === 'HR' ? 'role-hr' : 
+                                  emp.role === 'intern' ? 'role-intern' :
+                                  emp.role === 'fresher' ? 'role-fresher' : 'role-employee'
+                                }`}>{emp.role}</span>
+                              </td>
                               <td><span className={emp.status === 'PENDING' ? 'badge-pending' : emp.status === 'APPROVED' ? 'badge-approved' : 'badge-rejected'}>{emp.status}</span></td>
                               <td className="text-xs text-white/40">{new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                               <td className="text-right">

@@ -13,13 +13,14 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type UserStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type ThemeMode = 'cyber-dark' | 'day' | 'night' | 'forest' | 'ocean' | 'zen';
+export type Designation = 'founding piller' | 'employee' | 'intern' | 'fresher' | 'HR' | 'Team leader';
 
 export interface Employee {
   id: string;
   name: string;
   email: string;
   department: string;
-  role: string;
+  role: Designation;
   pin: string;
   status: UserStatus;
   createdAt: string;
@@ -113,6 +114,29 @@ export interface FileTransfer {
 export interface EmployeeSettings {
   theme: ThemeMode;
   notificationsEnabled: boolean;
+  notificationChannels: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+    inApp: boolean;
+  };
+  dndMode: {
+    enabled: boolean;
+    start: string; // HH:mm
+    end: string;   // HH:mm
+  };
+  localization: {
+    timezone: string;
+    language: string;
+  };
+  landingPage: string;
+  integrations: {
+    slack: boolean;
+    teams: boolean;
+    github: boolean;
+    figma: boolean;
+    notion: boolean;
+  };
   profilePhoto?: string;
   bio?: string;
 }
@@ -181,8 +205,8 @@ const generate12DigitPin = (): string => {
 const generateId = (): string =>
   Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 
-const DEPARTMENTS = ['Engineering', 'Design', 'Marketing', 'Operations', 'Finance', 'HR'];
-const ROLES = ['Software Engineer', 'UI Designer', 'Marketing Lead', 'Ops Manager', 'Analyst', 'HR Specialist'];
+const DEPARTMENTS = ['Engineering', 'Design', 'Marketing', 'Operations', 'Finance', 'HR', 'Executive'];
+const ROLES: Designation[] = ['employee', 'fresher', 'intern', 'Team leader', 'HR', 'founding piller'];
 
 const buildPaystubs = (employeeId: string): PayStub[] => {
   const months = ['November 2024', 'December 2024', 'January 2025', 'February 2025', 'March 2025', 'April 2025'];
@@ -201,6 +225,11 @@ const SEED_MESSAGES: Message[] = [
 const DEFAULT_SETTINGS: EmployeeSettings = {
   theme: 'cyber-dark',
   notificationsEnabled: true,
+  notificationChannels: { email: true, push: true, sms: false, inApp: true },
+  dndMode: { enabled: false, start: '22:00', end: '08:00' },
+  localization: { timezone: 'UTC+5:30', language: 'English (US)' },
+  landingPage: 'profile',
+  integrations: { slack: false, teams: false, github: false, figma: false, notion: false }
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────

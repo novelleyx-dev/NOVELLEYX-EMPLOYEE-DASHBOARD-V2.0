@@ -42,6 +42,7 @@ export default function LoginPage() {
   // Registration fields
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
+  const [regRole, setRegRole] = useState<Designation>('employee');
   const [generatedPin, setGeneratedPin] = useState<string | null>(null);
 
   // UI state
@@ -134,7 +135,10 @@ export default function LoginPage() {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     const pin = addEmployee({
-      name: regName.trim(), email: regEmail.trim(), department: '', role: '',
+      name: regName.trim(), 
+      email: regEmail.trim(), 
+      department: '', 
+      role: regRole,
     });
     setGeneratedPin(pin);
     setLoading(false);
@@ -395,6 +399,22 @@ export default function LoginPage() {
                       className="cyber-input"
                       onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
                     />
+                  <div>
+                    <label className="text-xs font-semibold text-cyan-400/70 uppercase tracking-wider mb-2 block">
+                      <User size={10} className="inline mr-1" /> Designation
+                    </label>
+                    <select 
+                      value={regRole} 
+                      onChange={(e) => setRegRole(e.target.value as Designation)}
+                      className="cyber-input"
+                    >
+                      <option value="employee">Employee</option>
+                      <option value="founding piller">Founding Piller</option>
+                      <option value="intern">Intern</option>
+                      <option value="fresher">Fresher</option>
+                      <option value="HR">HR</option>
+                      <option value="Team leader">Team Leader</option>
+                    </select>
                   </div>
                 </div>
 
