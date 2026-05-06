@@ -30,7 +30,7 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole } = useStore();
+  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole, attendance } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
@@ -52,6 +52,7 @@ export default function AdminDashboard() {
       const currentVars = vars[settings.theme];
       if (currentVars) {
         Object.entries(currentVars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v as string));
+        // We set document background but with slightly more transparency if it's admin
         document.body.style.background = currentVars['--bg'];
         document.body.style.color = currentVars['--text'];
       }
@@ -84,6 +85,9 @@ export default function AdminDashboard() {
     updateEmployeeStatus(id, action);
     setProcessing(null);
   };
+
+  const liveEmployees = employees.filter(e => attendance.some((a: any) => a.employeeId === e.id && !a.clockOut));
+  const liveCount = liveEmployees.length;
 
   const StatCard = ({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: number; color: string; sub?: string }) => (
     <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-5 flex items-center gap-4 cursor-default">
@@ -176,10 +180,29 @@ export default function AdminDashboard() {
                   <StatCard icon={UserCheck} label="Approved" value={approved} color="132,204,22" />
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <StatCard icon={Calendar} label="Upcoming Meetings" value={upcomingMeetings} color="34,211,238" />
+                  <StatCard icon={Activity} label="Live Workforce" value={liveCount} color="34,197,94" sub={`${liveCount} employees currently active`} />
                   <StatCard icon={Activity} label="Tasks Submitted" value={submittedTasks} color="217,70,239" />
                 </div>
+                {liveCount > 0 && (
+                  <div className="glass-card p-5 border-emerald-500/20">
+                    <h3 className="font-bold text-emerald-400 text-sm mb-3 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Now</h3>
+                    <div className="flex flex-wrap gap-3">
+                      {liveEmployees.map(emp => (
+                        <div key={emp.id} className="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                          {emp.profilePhoto ? (
+                            <img src={emp.profilePhoto} className="w-6 h-6 rounded-lg object-cover" alt={emp.name} />
+                          ) : (
+                            <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-6 h-6 rounded-lg" alt={emp.name} />
+                          )}
+                          <span className="text-xs font-bold text-white/80">{emp.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {pending > 0 && (
                   <div className="glass-card p-5">
                     <h3 className="font-bold text-amber-400 text-sm mb-3 flex items-center gap-2"><AlertCircle size={14} /> Pending Approvals</h3>

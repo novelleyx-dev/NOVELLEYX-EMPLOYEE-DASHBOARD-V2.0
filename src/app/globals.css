@@ -94,7 +94,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(circle at 50% 50%, #080b15 0%, #03050a 100%);
+  background: radial-gradient(circle at 50% 50%, var(--bg) 0%, #000000 100%);
   overflow: hidden;
 }
 
@@ -105,8 +105,9 @@ body {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 40%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 70% 60%, rgba(34, 211, 238, 0.08) 0%, transparent 40%);
+  background: radial-gradient(circle at 30% 40%, var(--accent) 0%, transparent 40%),
+              radial-gradient(circle at 70% 60%, var(--accent2) 0%, transparent 40%);
+  opacity: 0.08;
   animation: admin-bg-pulse 15s ease-in-out infinite alternate;
 }
 
