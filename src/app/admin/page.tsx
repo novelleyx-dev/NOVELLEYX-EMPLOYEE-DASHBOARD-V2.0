@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Users, AlertCircle, LogOut, Search, CheckCircle2, XCircle,
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
-  Calendar, FolderOpen, Activity, LayoutDashboard, Menu
+  Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings
 } from 'lucide-react';
 import { useStore, Employee } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';

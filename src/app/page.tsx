@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, ShieldCheck, User, Lock, Mail, UserPlus, LogIn, Loader2, AlertCircle, CheckCircle2, ArrowLeft, Sparkles } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { useStore, Designation } from '@/store/useStore';
 
 // ─── Admin Credentials (hardcoded, no external auth) ───────────────────────
 const ADMIN_EMAIL = 'abhinav.patta01@gmail.com';
@@ -399,6 +399,8 @@ export default function LoginPage() {
                       className="cyber-input"
                       onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
                     />
+                  </div>
+
                   <div>
                     <label className="text-xs font-semibold text-cyan-400/70 uppercase tracking-wider mb-2 block">
                       <User size={10} className="inline mr-1" /> Designation

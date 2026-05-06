@@ -194,7 +194,7 @@ export default function PerformanceModule({ employeeId }: Props) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.07 }}
                 className={`flex items-center gap-3 p-3 rounded-xl border transition-all
-                  ${entry.you
+                  ${entry.id === emp.id
                     ? 'bg-cyan-400/8 border-cyan-400/25 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
                     : 'bg-white/2 border-white/5'}`}
               >

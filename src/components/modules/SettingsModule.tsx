@@ -36,7 +36,7 @@ const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
 };
 
 export default function SettingsModule({ employeeId }: { employeeId: string }) {
-  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById } = useStore();
+  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile } = useStore();
   const settings = getSettings(employeeId);
   const emp = getEmployeeById(employeeId);
 
