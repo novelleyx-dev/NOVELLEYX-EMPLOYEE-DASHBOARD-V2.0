@@ -36,7 +36,7 @@ const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
 };
 
 export default function SettingsModule({ employeeId }: { employeeId: string }) {
-  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile } = useStore();
+  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile, submitTicket } = useStore();
   const settings = getSettings(employeeId);
   const emp = getEmployeeById(employeeId);
 
@@ -44,6 +44,7 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
   const [saved, setSaved] = useState(false);
   const [name, setName] = useState(emp?.name || '');
   const [bio, setBio] = useState(settings.bio || '');
+  const [ticketType, setTicketType] = useState('Request Manager Access');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const applyTheme = (theme: ThemeMode) => {
@@ -215,6 +216,21 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                           <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Work Phone</label>
                           <input type="tel" placeholder="+1 (555) 000-0000" className="cyber-input" />
                         </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Linked Email (Auto-Alerts)</label>
+                          <div className="flex gap-2">
+                            <input 
+                              type="email" 
+                              value={settings.linkedEmail || ''} 
+                              onChange={(e) => updateSettings(employeeId, { linkedEmail: e.target.value })}
+                              placeholder="novelleyx@gmail.com" 
+                              className="cyber-input" 
+                            />
+                            {settings.linkedEmail === 'novelleyx@gmail.com' && (
+                              <div className="px-3 flex items-center justify-center rounded-lg bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-[10px] font-black uppercase">Linked</div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <button onClick={handleSave} className="btn-cyber mt-6 flex items-center gap-2">
@@ -290,9 +306,9 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                       <div>
                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">System Timezone</label>
                         <select 
-                          value={settings.localization.timezone}
+                          value={settings.localization?.timezone || 'UTC+5:30 (India Standard Time)'}
                           onChange={(e) => {
-                            updateSettings(employeeId, { localization: { ...settings.localization, timezone: e.target.value } });
+                            updateSettings(employeeId, { localization: { ...(settings.localization || {}), timezone: e.target.value } });
                             setSaved(true);
                             setTimeout(() => setSaved(false), 2000);
                           }}
@@ -307,9 +323,9 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                       <div>
                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">System Language</label>
                         <select 
-                          value={settings.localization.language}
+                          value={settings.localization?.language || 'English (US)'}
                           onChange={(e) => {
-                            updateSettings(employeeId, { localization: { ...settings.localization, language: e.target.value } });
+                            updateSettings(employeeId, { localization: { ...(settings.localization || {}), language: e.target.value } });
                             setSaved(true);
                             setTimeout(() => setSaved(false), 2000);
                           }}
@@ -399,12 +415,27 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                       <h4 className="text-sm font-bold text-fuchsia-400 mb-2 flex items-center gap-2"><ShieldAlert size={16} /> Request Elevation</h4>
                       <p className="text-white/40 text-xs mb-4">Need access to a restricted module? Submit an elevation request to the HR department.</p>
                       <div className="flex gap-2">
-                        <select className="cyber-input py-2 text-xs flex-1">
+                        <select 
+                          value={ticketType}
+                          onChange={(e) => setTicketType(e.target.value)}
+                          className="cyber-input py-2 text-xs flex-1"
+                        >
                           <option>Request Manager Access</option>
                           <option>Request Finance Write Access</option>
                           <option>Request HR Portal Access</option>
+                          <option>Account Troubleshooting</option>
+                          <option>Designation Dispute</option>
                         </select>
-                        <button className="btn-cyber py-2 px-4 text-xs bg-fuchsia-500/10 border-fuchsia-500/40 text-fuchsia-400 hover:bg-fuchsia-500/20">Submit Ticket</button>
+                        <button 
+                          onClick={() => {
+                            submitTicket(employeeId, ticketType, `Requesting ${ticketType} for ${emp?.name}`);
+                            setSaved(true);
+                            setTimeout(() => setSaved(false), 2000);
+                          }}
+                          className="btn-cyber py-2 px-4 text-xs bg-fuchsia-500/10 border-fuchsia-500/40 text-fuchsia-400 hover:bg-fuchsia-500/20"
+                        >
+                          Submit Ticket
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -420,26 +451,26 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                     <div className="space-y-3 mb-8">
                       <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Channel Routing</h4>
                       <Toggle 
-                        active={settings.notificationChannels.email} 
-                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...settings.notificationChannels, email: !settings.notificationChannels.email } })}
+                        active={settings.notificationChannels?.email || false} 
+                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...(settings.notificationChannels || {}), email: !settings.notificationChannels?.email } })}
                         label="Email Communications" 
                         desc="System summaries and meeting invitations."
                       />
                       <Toggle 
-                        active={settings.notificationChannels.push} 
-                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...settings.notificationChannels, push: !settings.notificationChannels.push } })}
+                        active={settings.notificationChannels?.push || false} 
+                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...(settings.notificationChannels || {}), push: !settings.notificationChannels?.push } })}
                         label="Desktop Push Notifications" 
                         desc="Real-time alerts while you are active on the site."
                       />
                       <Toggle 
-                        active={settings.notificationChannels.sms} 
-                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...settings.notificationChannels, sms: !settings.notificationChannels.sms } })}
+                        active={settings.notificationChannels?.sms || false} 
+                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...(settings.notificationChannels || {}), sms: !settings.notificationChannels?.sms } })}
                         label="SMS Critical Alerts" 
                         desc="Emergency system status and critical deadlines."
                       />
                       <Toggle 
-                        active={settings.notificationChannels.inApp} 
-                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...settings.notificationChannels, inApp: !settings.notificationChannels.inApp } })}
+                        active={settings.notificationChannels?.inApp || false} 
+                        onClick={() => updateSettings(employeeId, { notificationChannels: { ...(settings.notificationChannels || {}), inApp: !settings.notificationChannels?.inApp } })}
                         label="In-App Messaging" 
                         desc="New messages in Comm-Link or DMs."
                       />

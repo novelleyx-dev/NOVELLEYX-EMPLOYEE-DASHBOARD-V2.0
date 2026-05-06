@@ -150,6 +150,26 @@ export interface EmployeeSettings {
   twoFactor: boolean;
   biometrics: boolean;
   activityVisibility: boolean;
+  linkedEmail?: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: string;
+  subject: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+  createdAt: string;
+}
+
+export interface AdminNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'TICKET' | 'SYSTEM' | 'URGENT';
+  read: boolean;
+  createdAt: string;
 }
 
 export type SessionUser =
@@ -208,6 +228,14 @@ interface NovelleyXStore {
 
   customBadges: CustomBadge[];
   addCustomBadge: (badge: Omit<CustomBadge, 'id'>) => void;
+
+  tickets: SupportTicket[];
+  submitTicket: (employeeId: string, type: string, subject: string) => void;
+  updateTicketStatus: (id: string, status: SupportTicket['status']) => void;
+
+  adminNotifications: AdminNotification[];
+  addAdminNotification: (title: string, message: string, type: AdminNotification['type']) => void;
+  markAdminNotificationRead: (id: string) => void;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -458,9 +486,50 @@ export const useStore = create<NovelleyXStore>()(
         const id = 'cb-' + generateId();
         set((state) => ({ customBadges: [...state.customBadges, { ...badge, id }] }));
       },
+
+      // ── Support Tickets ───────────────────────────────────────────────────
+      tickets: [],
+      submitTicket: (employeeId, type, subject) => {
+        const emp = get().employees.find(e => e.id === employeeId);
+        const ticket: SupportTicket = {
+          id: 'TKT-' + generateId(),
+          employeeId,
+          employeeName: emp?.name || 'Unknown',
+          type,
+          subject,
+          status: 'OPEN',
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({ tickets: [...state.tickets, ticket] }));
+        get().addAdminNotification(
+          'New Support Ticket',
+          `${emp?.name || 'An employee'} submitted a ${type} ticket: "${subject}"`,
+          'TICKET'
+        );
+      },
+      updateTicketStatus: (id, status) => {
+        set((state) => ({ tickets: state.tickets.map(t => t.id === id ? { ...t, status } : t) }));
+      },
+
+      // ── Admin Notifications ───────────────────────────────────────────────
+      adminNotifications: [],
+      addAdminNotification: (title, message, type) => {
+        const notification: AdminNotification = {
+          id: generateId(),
+          title,
+          message,
+          type,
+          read: false,
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({ adminNotifications: [notification, ...state.adminNotifications] }));
+      },
+      markAdminNotificationRead: (id) => {
+        set((state) => ({ adminNotifications: state.adminNotifications.map(n => n.id === id ? { ...n, read: true } : n) }));
+      },
     }),
     {
-      name: 'novelleyx-store-v3',
+      name: 'novelleyx-store-v4',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         employees: state.employees,
@@ -474,6 +543,8 @@ export const useStore = create<NovelleyXStore>()(
         employeeSettings: state.employeeSettings,
         session: state.session,
         customBadges: state.customBadges,
+        tickets: state.tickets,
+        adminNotifications: state.adminNotifications,
       }),
     }
   )

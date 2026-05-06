@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Users, AlertCircle, LogOut, Search, CheckCircle2, XCircle,
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
-  Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings
+  Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings, Bell
 } from 'lucide-react';
 import { useStore, Employee, Designation } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';
@@ -30,12 +30,13 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole, attendance } = useStore();
+  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole, attendance, adminNotifications, markAdminNotificationRead } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const settings = getSettings('admin');
 
@@ -140,6 +141,54 @@ export default function AdminDashboard() {
               <p className="text-[10px] text-cyan-400">ADMIN CONTROL</p>
             </div>
             <div className="flex items-center gap-3">
+              <div className="relative">
+                <button 
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className={`p-2 rounded-xl border transition-all relative ${notifOpen ? 'bg-amber-400/10 border-amber-400 text-amber-400' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
+                >
+                  <Bell size={18} />
+                  {adminNotifications.some(n => !n.read) && (
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {notifOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-2 w-80 glass-card p-3 z-50 border border-white/10"
+                      >
+                        <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-3 px-2">Notifications</h4>
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                          {adminNotifications.length === 0 ? (
+                            <div className="py-8 text-center text-white/20 text-xs">No notifications yet.</div>
+                          ) : (
+                            adminNotifications.map(n => (
+                              <div 
+                                key={n.id} 
+                                onClick={() => markAdminNotificationRead(n.id)}
+                                className={`p-3 rounded-xl border transition-all cursor-pointer ${n.read ? 'bg-white/2 border-white/5 opacity-60' : 'bg-white/5 border-white/10 hover:border-cyan-400/30'}`}
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <p className={`text-xs font-bold ${n.type === 'TICKET' ? 'text-fuchsia-400' : 'text-cyan-400'}`}>{n.title}</p>
+                                  {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+                                </div>
+                                <p className="text-[11px] text-white/60 leading-relaxed">{n.message}</p>
+                                <p className="text-[9px] text-white/30 mt-2">{new Date(n.createdAt).toLocaleTimeString()}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <button 
                 onClick={() => setActiveTab('settings')}
                 className={`p-2 rounded-xl border transition-all ${activeTab === 'settings' ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
