@@ -405,6 +405,7 @@ export const useStore = create<NovelleyXStore>()(
         meetings: state.meetings,
         fileTransfers: state.fileTransfers,
         employeeSettings: state.employeeSettings,
+        session: state.session,
       }),
     }
   )
