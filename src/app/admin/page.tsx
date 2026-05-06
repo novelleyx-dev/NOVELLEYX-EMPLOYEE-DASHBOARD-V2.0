@@ -14,7 +14,7 @@ import AdminMeetingsModule from '@/components/modules/admin/MeetingsModule';
 import AdminFilesModule from '@/components/modules/admin/FilesModule';
 import SettingsModule from '@/components/modules/SettingsModule';
 
-type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges' | 'settings';
+type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges' | 'settings' | 'tickets';
 
 const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -24,6 +24,7 @@ const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'meetings', label: 'Meetings', icon: Calendar },
   { key: 'files', label: 'Files', icon: FolderOpen },
   { key: 'badges', label: 'Badges', icon: SparklesIcon },
+  { key: 'tickets', label: 'Tickets', icon: AlertCircle },
 ];
 
 function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={size} /> }
@@ -447,6 +448,7 @@ export default function AdminDashboard() {
             {activeTab === 'meetings' && <AdminMeetingsModule />}
             {activeTab === 'files' && <AdminFilesModule />}
             {activeTab === 'badges' && <AdminBadgesModule />}
+            {activeTab === 'tickets' && <AdminTicketsModule />}
             {activeTab === 'settings' && <SettingsModule employeeId="admin" />}
           </motion.div>
         </AnimatePresence>
@@ -513,6 +515,66 @@ function AdminBadgesModule() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminTicketsModule() {
+  const { tickets, updateTicketStatus } = useStore();
+
+  return (
+    <div className="space-y-6">
+      <div className="glass-card p-8">
+        <h3 className="text-xl font-bold text-white mb-2">Support Tickets</h3>
+        <p className="text-white/40 text-sm mb-6">Manage elevation requests and troubleshooting tickets from your workforce.</p>
+
+        <div className="space-y-4">
+          {tickets.length === 0 ? (
+            <div className="py-20 text-center text-white/20">
+              <AlertCircle size={48} className="mx-auto mb-4 opacity-10" />
+              <p>No support tickets found.</p>
+            </div>
+          ) : (
+            [...tickets].reverse().map(t => (
+              <div key={t.id} className="glass-card p-5 border-white/5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${t.status === 'OPEN' ? 'bg-amber-400/10 text-amber-400' : t.status === 'RESOLVED' ? 'bg-cyan-400/10 text-cyan-400' : 'bg-purple-400/10 text-purple-400'}`}>
+                    <AlertCircle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white flex items-center gap-2">
+                      {t.subject}
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider ${t.status === 'OPEN' ? 'bg-amber-400 text-black' : 'bg-cyan-400 text-black'}`}>
+                        {t.status}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-white/50 mt-0.5">Submitted by <span className="text-white font-semibold">{t.employeeName}</span> ({t.type})</p>
+                    <p className="text-[10px] text-white/30 mt-1">{new Date(t.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {t.status !== 'RESOLVED' && (
+                    <button 
+                      onClick={() => updateTicketStatus(t.id, 'RESOLVED')}
+                      className="px-4 py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-xs font-bold hover:bg-cyan-400/20 transition-all"
+                    >
+                      Mark Resolved
+                    </button>
+                  )}
+                  {t.status === 'OPEN' && (
+                    <button 
+                      onClick={() => updateTicketStatus(t.id, 'IN_PROGRESS')}
+                      className="px-4 py-2 rounded-lg bg-purple-400/10 border border-purple-400/30 text-purple-400 text-xs font-bold hover:bg-purple-400/20 transition-all"
+                    >
+                      Take Action
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
