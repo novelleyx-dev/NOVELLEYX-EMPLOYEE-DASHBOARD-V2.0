@@ -182,6 +182,7 @@ interface NovelleyXStore {
   paystubs: PayStub[];
   seedPaystubs: (employeeId: string) => void;
   updateEmployeeProfile: (id: string, name: string, photo?: string) => void;
+  updateEmployeeRole: (id: string, role: Designation) => void;
 
   tasks: Task[];
   assignTask: (task: Omit<Task, 'id' | 'assignedAt' | 'status'>) => string;
@@ -289,6 +290,12 @@ export const useStore = create<NovelleyXStore>()(
       updateEmployeeProfile: (id, name, photo) => {
         set((state) => ({
           employees: state.employees.map((e) => e.id === id ? { ...e, name, profilePhoto: photo || e.profilePhoto } : e)
+        }));
+      },
+
+      updateEmployeeRole: (id: string, role: Designation) => {
+        set((state) => ({
+          employees: state.employees.map((e) => e.id === id ? { ...e, role } : e)
         }));
       },
 

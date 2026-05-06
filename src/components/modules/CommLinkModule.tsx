@@ -124,7 +124,11 @@ export default function CommLinkModule({ employeeId }: { employeeId: string }) {
               {approved.map(emp => (
                 <button key={emp.id} onClick={() => setSelectedPeer(emp.id)}
                   className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-all hover:bg-white/5 ${selectedPeer === emp.id ? 'bg-cyan-400/10 border border-cyan-400/20' : ''}`}>
-                  <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
+                  {emp.profilePhoto ? (
+                    <img src={emp.profilePhoto} className="w-8 h-8 rounded-lg object-cover border border-white/10" alt={emp.name} />
+                  ) : (
+                    <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
+                  )}
                   <div><p className="text-sm font-semibold text-white truncate">{emp.name}</p><p className="text-xs text-white/40 truncate">{emp.department}</p></div>
                 </button>
               ))}

@@ -207,6 +207,15 @@ export default function PerformanceModule({ employeeId }: Props) {
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                 </div>
 
+                <div className="flex-shrink-0 relative">
+                  {entry.profilePhoto ? (
+                    <img src={entry.profilePhoto} className="w-9 h-9 rounded-lg object-cover border border-white/10" alt={entry.name} />
+                  ) : (
+                    <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${entry.avatarSeed}&backgroundColor=0a0a1a`} className="w-9 h-9 rounded-lg border border-white/10" alt={entry.name} />
+                  )}
+                  {i < 3 && <div className="absolute -top-1 -right-1 text-[8px]">⭐</div>}
+                </div>
+
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-semibold truncate ${entry.id === emp.id ? 'text-cyan-400' : 'text-white/70'}`}>
                     {entry.name} {entry.id === emp.id && <span className="text-xs text-white/40">(you)</span>}

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useStore, ThemeMode, Designation } from '@/store/useStore';
 
-type SettingsTab = 'profile' | 'localization' | 'roles' | 'notifications' | 'integrations' | 'privacy';
+type SettingsTab = 'profile' | 'localization' | 'roles' | 'notifications' | 'privacy';
 
 const THEMES: { key: ThemeMode; label: string; icon: any; desc: string; preview: string }[] = [
   { key: 'cyber-dark', label: 'Cyber Dark', icon: Zap, desc: 'Original neon glassmorphism', preview: 'linear-gradient(135deg, #030712, #0f1729)' },
@@ -57,8 +57,15 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
   };
 
   useEffect(() => { 
-    if (settings.theme) applyTheme(settings.theme); 
-  }, []);
+    if (settings.theme) {
+      const vars = THEME_VARS[settings.theme];
+      if (vars) {
+        Object.entries(vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+        document.body.style.background = vars['--bg'];
+        document.body.style.color = vars['--text'];
+      }
+    }
+  }, [settings.theme]);
 
   const handleSave = () => {
     updateSettings(employeeId, { bio });
@@ -85,7 +92,6 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
     { id: 'localization', label: 'Workspace', icon: Globe },
     { id: 'roles', label: 'Roles & Access', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'integrations', label: 'Integrations', icon: Zap },
     { id: 'privacy', label: 'Data & Privacy', icon: Database },
   ];
 
@@ -153,8 +159,11 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                           if (file) {
                             const reader = new FileReader();
                             reader.onload = () => {
-                              updateProfilePhoto(employeeId, reader.result as string);
-                              updateSettings(employeeId, { profilePhoto: reader.result as string });
+                              const photo = reader.result as string;
+                              updateEmployeeProfile(employeeId, name, photo);
+                              updateSettings(employeeId, { profilePhoto: photo });
+                              setSaved(true);
+                              setTimeout(() => setSaved(false), 2000);
                             };
                             reader.readAsDataURL(file);
                           }
@@ -446,49 +455,6 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                   </div>
                 </div>
               )}
-
-              {/* ── THIRD-PARTY INTEGRATIONS ───────────────────────── */}
-              {activeTab === 'integrations' && (
-                <div className="space-y-6">
-                  <div className="glass-card p-8">
-                    <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Zap size={20} className="text-amber-400" /> Connected Apps</h3>
-                    <p className="text-white/40 text-sm mb-8">Link your professional accounts for a unified workflow. No API keys required for simulation.</p>
-                    
-                    <div className="space-y-4">
-                      {[
-                        { id: 'github', label: 'GitHub Enterprise', icon: Github, color: 'white', desc: 'Sync repository activity and PR mentions.' },
-                        { id: 'slack', label: 'Slack Workspace', icon: Slack, color: '#4A154B', desc: 'Forward Comm-Link updates to Slack channels.' },
-                        { id: 'figma', label: 'Figma Dev Ops', icon: Figma, color: '#F24E1E', desc: 'Preview design files directly in tasks.' },
-                        { id: 'teams', label: 'Microsoft Teams', icon: Laptop, color: '#5059C9', desc: 'Sync meeting calendar with Outlook.' },
-                        { id: 'notion', label: 'Notion Workspace', icon: Layout, color: 'white', desc: 'Export task notes to team wiki pages.' },
-                      ].map((item) => {
-                        const isConnected = (settings.integrations as any)[item.id];
-                        return (
-                          <div key={item.id} className="flex items-center justify-between p-5 rounded-2xl bg-white/2 border border-white/5 hover:border-white/12 transition-all group">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform" style={{ color: item.color }}>
-                                <item.icon size={24} />
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-white">{item.label}</p>
-                                <p className="text-xs text-white/30">{item.desc}</p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => updateSettings(employeeId, { integrations: { ...settings.integrations, [item.id]: !isConnected } })}
-                              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border
-                                ${isConnected ? 'bg-lime-400/10 border-lime-400/40 text-lime-400' : 'bg-white/5 border-white/10 text-white/50 hover:text-white'}`}
-                            >
-                              {isConnected ? 'Disconnect' : 'Connect'}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* ── DATA & PRIVACY ─────────────────────────────────── */}
               {activeTab === 'privacy' && (
                 <div className="space-y-6">
@@ -502,7 +468,18 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                             <h4 className="text-sm font-bold text-white mb-1">Personal Data Portability</h4>
                             <p className="text-white/40 text-xs">Download a JSON archive of your activity logs and personal data.</p>
                           </div>
-                          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-xs font-bold hover:bg-cyan-400/20">
+                          <button 
+                            onClick={() => {
+                              const data = JSON.stringify({ emp, settings }, null, 2);
+                              const blob = new Blob([data], { type: 'application/json' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `novelleyx_export_${employeeId}.json`;
+                              a.click();
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-xs font-bold hover:bg-cyan-400/20"
+                          >
                             <Download size={14} /> Export Data
                           </button>
                         </div>
@@ -520,10 +497,10 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                         <h4 className="text-sm font-bold text-red-400 mb-2 flex items-center gap-2"><AlertTriangle size={16} /> Danger Zone</h4>
                         <p className="text-white/40 text-xs mb-6">Deactivating your account will pause your shift tracking and task visibility. Complete data deletion requires an HR request.</p>
                         <div className="flex gap-4">
-                          <button className="flex-1 py-3 rounded-xl border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2">
+                          <button onClick={() => alert('Account deactivation request sent to HR.')} className="flex-1 py-3 rounded-xl border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2">
                             <ShieldAlert size={14} /> Deactivate Account
                           </button>
-                          <button className="flex-1 py-3 rounded-xl bg-red-500/10 border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2">
+                          <button onClick={() => confirm('ARE YOU SURE? This will permanently delete your local identity.') && alert('Identity deleted. Please refresh page.')} className="flex-1 py-3 rounded-xl bg-red-500/10 border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2">
                             <Trash2 size={14} /> Delete Identity
                           </button>
                         </div>

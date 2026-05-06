@@ -7,7 +7,7 @@ import {
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
   Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings
 } from 'lucide-react';
-import { useStore, Employee } from '@/store/useStore';
+import { useStore, Employee, Designation } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';
 import AdminChatModule from '@/components/modules/admin/ChatModule';
 import AdminMeetingsModule from '@/components/modules/admin/MeetingsModule';
@@ -30,12 +30,33 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, attendance } = useStore();
+  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const settings = getSettings('admin');
+
+  useEffect(() => {
+    if (settings?.theme) {
+      const vars: any = {
+        'cyber-dark': { '--bg': '#030712', '--accent': '#22d3ee', '--accent2': '#a855f7', '--card-bg': 'rgba(255,255,255,0.04)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
+        'night': { '--bg': '#0a0e1a', '--accent': '#818cf8', '--accent2': '#a78bfa', '--card-bg': 'rgba(129,140,248,0.05)', '--card-border': 'rgba(129,140,248,0.12)', '--text': '#e2e8f0' },
+        'day': { '--bg': '#f8fafc', '--accent': '#2563eb', '--accent2': '#7c3aed', '--card-bg': 'rgba(255,255,255,0.9)', '--card-border': 'rgba(0,0,0,0.08)', '--text': '#0f172a' },
+        'forest': { '--bg': '#0d1f0f', '--accent': '#4ade80', '--accent2': '#86efac', '--card-bg': 'rgba(74,222,128,0.04)', '--card-border': 'rgba(74,222,128,0.12)', '--text': '#ecfdf5' },
+        'ocean': { '--bg': '#050e1a', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
+        'zen': { '--bg': '#1a1510', '--accent': '#d97706', '--accent2': '#92400e', '--card-bg': 'rgba(217,119,6,0.06)', '--card-border': 'rgba(217,119,6,0.15)', '--text': '#fef3c7' },
+      };
+      const currentVars = vars[settings.theme];
+      if (currentVars) {
+        Object.entries(currentVars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v as string));
+        document.body.style.background = currentVars['--bg'];
+        document.body.style.color = currentVars['--text'];
+      }
+    }
+  }, [settings?.theme]);
 
   useEffect(() => {
     if (!session) { router.replace('/'); return; }
@@ -166,7 +187,11 @@ export default function AdminDashboard() {
                       {employees.filter(e => e.status === 'PENDING').map(emp => (
                         <div key={emp.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-400/5 border border-amber-400/15">
                           <div className="flex items-center gap-2">
-                            <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
+                            {emp.profilePhoto ? (
+                              <img src={emp.profilePhoto} className="w-8 h-8 rounded-lg object-cover border border-white/10" alt={emp.name} />
+                            ) : (
+                              <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
+                            )}
                             <div><p className="text-sm font-semibold text-white">{emp.name}</p><p className="text-xs text-white/40">{emp.email}</p></div>
                           </div>
                           <div className="flex gap-2">
@@ -215,18 +240,40 @@ export default function AdminDashboard() {
                             <motion.tr key={emp.id} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
                               <td>
                                 <div className="flex items-center gap-3">
-                                  <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-9 h-9 rounded-lg border border-white/10" alt={emp.name} />
+                                  {emp.profilePhoto ? (
+                                    <img src={emp.profilePhoto} className="w-9 h-9 rounded-lg object-cover border border-white/10" alt={emp.name} />
+                                  ) : (
+                                    <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-9 h-9 rounded-lg border border-white/10" alt={emp.name} />
+                                  )}
                                   <div><p className="font-semibold text-white text-sm">{emp.name}</p><p className="text-xs text-white/40">{emp.email}</p></div>
                                 </div>
                               </td>
                               <td>
-                                <span className={`role-badge ${
-                                  emp.role === 'founding piller' ? 'role-piller' : 
-                                  emp.role === 'Team leader' ? 'role-leader' : 
-                                  emp.role === 'HR' ? 'role-hr' : 
-                                  emp.role === 'intern' ? 'role-intern' :
-                                  emp.role === 'fresher' ? 'role-fresher' : 'role-employee'
-                                }`}>{emp.role}</span>
+                                <select 
+                                  value={emp.role} 
+                                  onChange={(e) => {
+                                    const newRole = e.target.value as Designation;
+                                    setProcessing(emp.id + 'ROLE');
+                                    setTimeout(() => {
+                                      updateEmployeeRole(emp.id, newRole);
+                                      setProcessing(null);
+                                    }, 500);
+                                  }}
+                                  className={`role-badge bg-transparent border-none cursor-pointer outline-none ${
+                                    emp.role === 'founding piller' ? 'role-piller' : 
+                                    emp.role === 'Team leader' ? 'role-leader' : 
+                                    emp.role === 'HR' ? 'role-hr' : 
+                                    emp.role === 'intern' ? 'role-intern' :
+                                    emp.role === 'fresher' ? 'role-fresher' : 'role-employee'
+                                  }`}
+                                >
+                                  <option value="employee">Employee</option>
+                                  <option value="founding piller">Founding Piller</option>
+                                  <option value="intern">Intern</option>
+                                  <option value="fresher">Fresher</option>
+                                  <option value="HR">HR</option>
+                                  <option value="Team leader">Team Leader</option>
+                                </select>
                               </td>
                               <td><span className={emp.status === 'PENDING' ? 'badge-pending' : emp.status === 'APPROVED' ? 'badge-approved' : 'badge-rejected'}>{emp.status}</span></td>
                               <td className="text-xs text-white/40">{new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>

@@ -7,14 +7,16 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Building2, Briefcase, Phone, Heart, Save, CheckCircle2, Edit3, Shield, Calendar } from 'lucide-react';
+import { User, Mail, Building2, Briefcase, Phone, Heart, Save, CheckCircle2, Edit3, Shield, Calendar, Camera } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useRef } from 'react';
 
 interface Props { employeeId: string; }
 
 export default function ProfileModule({ employeeId }: Props) {
-  const { employees, updateEmergencyContact } = useStore();
+  const { employees, updateEmergencyContact, updateEmployeeProfile } = useStore();
   const emp = employees.find((e) => e.id === employeeId);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -68,14 +70,30 @@ export default function ProfileModule({ employeeId }: Props) {
         <motion.div variants={itemVariants} className="xl:col-span-1">
           <div className="glass-card p-6 text-center border-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.05)]">
             <div className="relative inline-block mb-4">
-              <div className="w-32 h-32 rounded-3xl mx-auto overflow-hidden border-2 p-1"
+              <div className="w-32 h-32 rounded-3xl mx-auto overflow-hidden border-2 p-1 group cursor-pointer relative"
+                onClick={() => fileRef.current?.click()}
                 style={{ borderColor: 'rgba(34,211,238,0.3)', boxShadow: '0 0 30px rgba(34,211,238,0.1)' }}>
-                <img
-                  src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a,0d1117&shapeColor=22d3ee,a855f7`}
-                  alt={emp.name}
-                  className="w-full h-full rounded-2xl"
-                />
+                {emp.profilePhoto ? (
+                  <img src={emp.profilePhoto} className="w-full h-full object-cover rounded-2xl" alt="profile" />
+                ) : (
+                  <img
+                    src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a,0d1117&shapeColor=22d3ee,a855f7`}
+                    alt={emp.name}
+                    className="w-full h-full rounded-2xl"
+                  />
+                )}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                  <Camera size={24} className="text-white" />
+                </div>
               </div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = () => updateEmployeeProfile(employeeId, emp.name, reader.result as string);
+                  reader.readAsDataURL(file);
+                }
+              }} />
               <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-lime-400 rounded-full border-4 border-black flex items-center justify-center">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               </div>
