@@ -271,7 +271,7 @@ export const useStore = create<NovelleyXStore>()(
           status: 'PENDING',
           createdAt: new Date().toISOString(),
           avatarSeed: emp.name.toLowerCase().replace(/\s/g, '-') + '-' + id,
-          xp: Math.floor(Math.random() * 2000) + 500,
+          xp: 0,
           badges: [],
         };
         set((state) => ({ employees: [...state.employees, newEmployee] }));
@@ -280,7 +280,6 @@ export const useStore = create<NovelleyXStore>()(
 
       updateEmployeeStatus: (id, status) => {
         set((state) => ({ employees: state.employees.map((e) => e.id === id ? { ...e, status } : e) }));
-        if (status === 'APPROVED') get().seedPaystubs(id);
       },
 
       updateEmergencyContact: (id, contact) => {
