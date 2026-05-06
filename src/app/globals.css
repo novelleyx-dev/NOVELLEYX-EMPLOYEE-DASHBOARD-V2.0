@@ -89,6 +89,44 @@ body {
   100% { transform: scale(1.05) rotate(2deg); }
 }
 
+/* Admin Live Background */
+.admin-live-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, #080b15 0%, #03050a 100%);
+  overflow: hidden;
+}
+
+.admin-live-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 40%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+              radial-gradient(circle at 70% 60%, rgba(34, 211, 238, 0.08) 0%, transparent 40%);
+  animation: admin-bg-pulse 15s ease-in-out infinite alternate;
+}
+
+@keyframes admin-bg-pulse {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+.admin-grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: 
+    linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
+}
+
 /* Cyber grid overlay */
 .bg-cyber-grid-overlay {
   background-image:

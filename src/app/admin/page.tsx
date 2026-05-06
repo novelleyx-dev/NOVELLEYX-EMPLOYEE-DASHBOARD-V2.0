@@ -12,8 +12,9 @@ import AdminTasksModule from '@/components/modules/admin/TasksModule';
 import AdminChatModule from '@/components/modules/admin/ChatModule';
 import AdminMeetingsModule from '@/components/modules/admin/MeetingsModule';
 import AdminFilesModule from '@/components/modules/admin/FilesModule';
+import SettingsModule from '@/components/modules/SettingsModule';
 
-type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges';
+type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges' | 'settings';
 
 const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -78,8 +79,11 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen transition-colors duration-500">
-      {/* Header Bar */}
+    <div className="min-h-screen bg-[#03050a] text-slate-200">
+      {/* Live Admin Background */}
+      <div className="admin-live-bg" />
+      <div className="admin-grid-overlay" />
+
       <header className="header-bar">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -96,38 +100,20 @@ export default function AdminDashboard() {
           <div className="hidden sm:flex items-center gap-3 mr-4 border-r border-white/10 pr-4">
             <div className="text-right">
               <p className="text-xs font-bold text-white">Abhinav Patta</p>
-              <p className="text-[10px] text-fuchsia-400/70">Master Administrator</p>
+              <p className="text-[10px] text-cyan-400">ADMIN CONTROL</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-              <ShieldCheck size={16} className="text-fuchsia-400" />
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`p-2 rounded-xl border transition-all ${activeTab === 'settings' ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
+                title="Admin Settings"
+              >
+                <Settings size={18} />
+              </button>
+              <button onClick={() => setSession(null)} className="btn-reject flex items-center gap-2 py-2 px-4 text-xs">
+                <LogOut size={14} /> Exit System
+              </button>
             </div>
-          </div>
-
-          <div className="relative">
-            <button 
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-fuchsia-400 hover:bg-fuchsia-500/10 transition-all"
-            >
-              <Menu size={20} />
-            </button>
-            
-            <AnimatePresence>
-              {userMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-48 glass-card p-2 z-50 border border-white/10"
-                  >
-                    <button onClick={() => { setSession(null); router.push('/'); }} className="nav-item w-full text-red-400 hover:bg-red-400/10">
-                      <LogOut size={16} /> Logout System
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -279,6 +265,7 @@ export default function AdminDashboard() {
             {activeTab === 'meetings' && <AdminMeetingsModule />}
             {activeTab === 'files' && <AdminFilesModule />}
             {activeTab === 'badges' && <AdminBadgesModule />}
+            {activeTab === 'settings' && <SettingsModule employeeId="admin" />}
           </motion.div>
         </AnimatePresence>
       </main>
