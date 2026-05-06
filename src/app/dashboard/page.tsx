@@ -16,7 +16,7 @@ import TasksModule from '@/components/modules/TasksModule';
 import MeetingsModule from '@/components/modules/MeetingsModule';
 import SettingsModule from '@/components/modules/SettingsModule';
 
-type Module = 'profile' | 'attendance' | 'tasks' | 'comms' | 'meetings' | 'finance' | 'performance' | 'settings';
+type Module = 'profile' | 'attendance' | 'tasks' | 'comms' | 'meetings' | 'finance' | 'performance' | 'settings' | 'archive';
 
 const NAV_ITEMS: { key: Module; label: string; icon: any; description: string }[] = [
   { key: 'profile', label: 'My Profile', icon: User, description: 'Profile & Emergency Contacts' },
@@ -24,10 +24,13 @@ const NAV_ITEMS: { key: Module; label: string; icon: any; description: string }[
   { key: 'tasks', label: 'My Work', icon: ClipboardList, description: 'Assigned Tasks · Submit' },
   { key: 'comms', label: 'Comm-Link', icon: MessageSquare, description: 'Board · DMs · Media' },
   { key: 'meetings', label: 'Meetings', icon: Calendar, description: 'Upcoming Sessions' },
+  { key: 'archive', label: 'Archive', icon: Clock, description: 'Attendance History until 3000' },
   { key: 'finance', label: 'Finance Vault', icon: DollarSign, description: 'Paystubs & History' },
   { key: 'performance', label: 'Performance', icon: Trophy, description: 'XP, Badges & Milestones' },
   { key: 'settings', label: 'Settings', icon: Settings, description: 'Theme · Profile · Preferences' },
 ];
+
+import CalendarModule from '@/components/modules/CalendarModule';
 
 export default function DashboardLayout() {
   const router = useRouter();
@@ -60,6 +63,7 @@ export default function DashboardLayout() {
       case 'finance': return <FinanceModule employeeId={emp.id} />;
       case 'performance': return <PerformanceModule employeeId={emp.id} />;
       case 'settings': return <SettingsModule employeeId={emp.id} />;
+      case 'archive': return <CalendarModule employeeId={emp.id} />;
     }
   };
 

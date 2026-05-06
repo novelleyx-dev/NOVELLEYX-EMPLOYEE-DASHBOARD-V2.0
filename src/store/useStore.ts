@@ -111,6 +111,14 @@ export interface FileTransfer {
   timestamp: string;
 }
 
+export interface CustomBadge {
+  id: string;
+  label: string;
+  icon: string;
+  xp: number;
+  desc: string;
+}
+
 export interface EmployeeSettings {
   theme: ThemeMode;
   notificationsEnabled: boolean;
@@ -173,6 +181,7 @@ interface NovelleyXStore {
 
   paystubs: PayStub[];
   seedPaystubs: (employeeId: string) => void;
+  updateEmployeeProfile: (id: string, name: string, photo?: string) => void;
 
   tasks: Task[];
   assignTask: (task: Omit<Task, 'id' | 'assignedAt' | 'status'>) => string;
@@ -192,6 +201,9 @@ interface NovelleyXStore {
   employeeSettings: Record<string, EmployeeSettings>;
   updateSettings: (employeeId: string, settings: Partial<EmployeeSettings>) => void;
   getSettings: (employeeId: string) => EmployeeSettings;
+
+  customBadges: CustomBadge[];
+  addCustomBadge: (badge: Omit<CustomBadge, 'id'>) => void;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -217,10 +229,7 @@ const buildPaystubs = (employeeId: string): PayStub[] => {
   }));
 };
 
-const SEED_MESSAGES: Message[] = [
-  { id: 'msg-0', senderId: 'admin', senderName: 'Admin — Abhinav', content: '🚀 Welcome to the NovelleyX Comm-Link! Secure internal messaging board.', timestamp: new Date(Date.now() - 3600000 * 5).toISOString(), isAdmin: true },
-  { id: 'msg-1', senderId: 'admin', senderName: 'Admin — Abhinav', content: '📋 Reminder: Q2 performance reviews begin next Monday. Please update your self-assessments.', timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), isAdmin: true },
-];
+const SEED_MESSAGES: Message[] = [];
 
 const DEFAULT_SETTINGS: EmployeeSettings = {
   theme: 'cyber-dark',
@@ -276,6 +285,12 @@ export const useStore = create<NovelleyXStore>()(
       },
 
       getEmployeeById: (id) => get().employees.find((e) => e.id === id),
+
+      updateEmployeeProfile: (id, name, photo) => {
+        set((state) => ({
+          employees: state.employees.map((e) => e.id === id ? { ...e, name, profilePhoto: photo || e.profilePhoto } : e)
+        }));
+      },
 
       // ── Attendance ──────────────────────────────────────────────────────────
       attendance: [],
@@ -347,8 +362,9 @@ export const useStore = create<NovelleyXStore>()(
       paystubs: [],
 
       seedPaystubs: (employeeId) => {
+        // Initializing with empty array as per user request for "clean/empty" start
         if (get().paystubs.some((p) => p.employeeId === employeeId)) return;
-        set((state) => ({ paystubs: [...state.paystubs, ...buildPaystubs(employeeId)] }));
+        set((state) => ({ paystubs: state.paystubs }));
       },
 
       // ── Tasks ───────────────────────────────────────────────────────────────
@@ -420,6 +436,16 @@ export const useStore = create<NovelleyXStore>()(
       },
 
       getSettings: (employeeId) => get().employeeSettings[employeeId] || DEFAULT_SETTINGS,
+
+      // ── Custom Badges ──────────────────────────────────────────────────────
+      customBadges: [
+        { id: 'b1', label: 'Early Bird', icon: 'Sun', xp: 50, desc: 'Clocked in before 9 AM' },
+        { id: 'b2', label: 'Clockwork', icon: 'Clock', xp: 25, desc: 'Consistent attendance streak' },
+      ],
+      addCustomBadge: (badge) => {
+        const id = 'cb-' + generateId();
+        set((state) => ({ customBadges: [...state.customBadges, { ...badge, id }] }));
+      },
     }),
     {
       name: 'novelleyx-store-v3',
@@ -435,6 +461,7 @@ export const useStore = create<NovelleyXStore>()(
         fileTransfers: state.fileTransfers,
         employeeSettings: state.employeeSettings,
         session: state.session,
+        customBadges: state.customBadges,
       }),
     }
   )

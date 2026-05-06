@@ -42,6 +42,7 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saved, setSaved] = useState(false);
+  const [name, setName] = useState(emp?.name || '');
   const [bio, setBio] = useState(settings.bio || '');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +62,7 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
 
   const handleSave = () => {
     updateSettings(employeeId, { bio });
+    updateEmployeeProfile(employeeId, name);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -160,7 +162,7 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white">{emp?.name}</h3>
-                        <p className="text-white/40 text-sm">{emp?.email}</p>
+                        <p className="text-white/40 text-[10px] font-mono tracking-widest uppercase">ID: {emp?.id}</p>
                         <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
                           ${emp?.role === 'founding piller' ? 'role-piller' : emp?.role === 'Team leader' ? 'role-leader' : 'role-employee'}`}>
                           <Shield size={10} /> {emp?.role}
@@ -169,6 +171,15 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Display Name</label>
+                        <input 
+                          type="text" 
+                          value={name} 
+                          onChange={(e) => setName(e.target.value)}
+                          className="cyber-input" 
+                        />
+                      </div>
                       <div>
                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Display Bio</label>
                         <textarea 

@@ -55,10 +55,10 @@ export default function TasksModule({ employeeId }: { employeeId: string }) {
           <div className="space-y-4">
             {open.map(task => {
               const dl = task.adminExtendedUntil || task.deadline;
-              const remaining = Math.max(0, new Date(dl).getTime() - Date.now());
-              const hrs = Math.floor(remaining / 3600000);
-              const mins = Math.floor((remaining % 3600000) / 60000);
-              const expired = remaining === 0;
+              const elapsed = Math.max(0, Date.now() - new Date(task.assignedAt).getTime());
+              const hrs = Math.floor(elapsed / 3600000);
+              const mins = Math.floor((elapsed % 3600000) / 60000);
+              const expired = false; // Tasks no longer "expire" with a countdown; we track time active
               return (
                 <motion.div key={task.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="glass-card p-5 hover:border-cyan-400/20 transition-all">
@@ -71,11 +71,11 @@ export default function TasksModule({ employeeId }: { employeeId: string }) {
                       </div>
                       {task.description && <p className="text-white/50 text-sm mb-2">{task.description}</p>}
                       <div className="flex items-center gap-2 text-xs">
-                        <Timer size={11} className={expired ? 'text-red-400' : 'text-amber-400'} />
-                        <span className={expired ? 'text-red-400 font-bold' : 'text-amber-400'}>
-                          {expired ? 'EXPIRED' : `${hrs}h ${mins}m remaining`}
+                        <Timer size={11} className="text-cyan-400" />
+                        <span className="text-cyan-400">
+                          {hrs}h {mins}m active
                         </span>
-                        {task.adminExtendedUntil && <span className="text-cyan-400">⏱ Extended by Admin</span>}
+                        {task.adminExtendedUntil && <span className="text-amber-400">⏱ Deadline Extended</span>}
                       </div>
                     </div>
                   </div>

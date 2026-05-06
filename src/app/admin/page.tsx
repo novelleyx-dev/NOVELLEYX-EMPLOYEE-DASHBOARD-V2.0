@@ -13,7 +13,7 @@ import AdminChatModule from '@/components/modules/admin/ChatModule';
 import AdminMeetingsModule from '@/components/modules/admin/MeetingsModule';
 import AdminFilesModule from '@/components/modules/admin/FilesModule';
 
-type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files';
+type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges';
 
 const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -22,7 +22,10 @@ const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'comms', label: 'Communications', icon: MessageSquare },
   { key: 'meetings', label: 'Meetings', icon: Calendar },
   { key: 'files', label: 'Files', icon: FolderOpen },
+  { key: 'badges', label: 'Badges', icon: SparklesIcon },
 ];
+
+function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={size} /> }
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -275,9 +278,74 @@ export default function AdminDashboard() {
             {activeTab === 'comms' && <AdminChatModule />}
             {activeTab === 'meetings' && <AdminMeetingsModule />}
             {activeTab === 'files' && <AdminFilesModule />}
+            {activeTab === 'badges' && <AdminBadgesModule />}
           </motion.div>
         </AnimatePresence>
       </main>
     </div>
   );
 }
+
+function AdminBadgesModule() {
+  const { customBadges, addCustomBadge } = useStore();
+  const [newBadge, setNewBadge] = useState({ label: '', desc: '', xp: 50, icon: 'Shield' });
+
+  return (
+    <div className="space-y-6">
+      <div className="glass-card p-8">
+        <h3 className="text-xl font-bold text-white mb-2">Badge Control Panel</h3>
+        <p className="text-white/40 text-sm mb-6">Create new achievements to boost employee efficiency and engagement.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div>
+            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Badge Label</label>
+            <input type="text" value={newBadge.label} onChange={e => setNewBadge({...newBadge, label: e.target.value})} placeholder="e.g. Code Ninja" className="cyber-input" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">XP Reward</label>
+            <input type="number" value={newBadge.xp} onChange={e => setNewBadge({...newBadge, xp: parseInt(e.target.value) || 0})} className="cyber-input" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Visual Icon</label>
+            <select value={newBadge.icon} onChange={e => setNewBadge({...newBadge, icon: e.target.value})} className="cyber-input">
+              <option>Shield</option>
+              <option>Zap</option>
+              <option>Star</option>
+              <option>Trophy</option>
+              <option>Code</option>
+              <option>Rocket</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button 
+              onClick={() => { addCustomBadge(newBadge); setNewBadge({ label: '', desc: '', xp: 50, icon: 'Shield' }); }}
+              className="btn-cyber w-full py-3"
+            >
+              Generate Badge
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Description / Criteria</label>
+          <input type="text" value={newBadge.desc} onChange={e => setNewBadge({...newBadge, desc: e.target.value})} placeholder="Awarded for solving 10 critical bugs in a week..." className="cyber-input" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {customBadges.map((badge) => (
+          <div key={badge.id} className="glass-card p-6 border-white/5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h4 className="font-bold text-white">{badge.label}</h4>
+              <p className="text-[10px] text-white/40 mb-1">{badge.desc}</p>
+              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">+{badge.xp} XP REWARD</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+

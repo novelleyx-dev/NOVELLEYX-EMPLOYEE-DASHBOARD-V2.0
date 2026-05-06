@@ -42,14 +42,20 @@ export default function PerformanceModule({ employeeId }: Props) {
   const levelRange = (level < 6 ? next : 9999) - ([0, 500, 1000, 2000, 3500, 5000][level - 1] ?? 0);
   const progress = Math.min(100, (xpInLevel / levelRange) * 100);
 
-  // Leaderboard mock data
-  const leaderboard = [
-    { name: emp.name, xp: emp.xp, you: true },
-    { name: 'Sarah K.', xp: 4200 },
-    { name: 'Marcus T.', xp: 3800 },
-    { name: 'Priya N.', xp: 3100 },
-    { name: 'James W.', xp: 2700 },
-  ].sort((a, b) => b.xp - a.xp);
+  // Dynamic Leaderboard from Store
+  const leaderboard = [...employees]
+    .sort((a, b) => b.xp - a.xp)
+    .slice(0, 10);
+
+  const { customBadges } = useStore();
+  const allBadges = [...BADGE_CATALOG, ...customBadges.map(b => ({
+    id: b.label,
+    icon: Star, // Default icon for custom
+    color: '#22d3ee',
+    bg: 'rgba(34,211,238,0.1)',
+    border: 'rgba(34,211,238,0.3)',
+    desc: b.desc
+  }))];
 
   return (
     <div>
@@ -125,10 +131,18 @@ export default function PerformanceModule({ employeeId }: Props) {
               <Award size={16} className="text-fuchsia-400" /> Badges & Achievements
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {BADGE_CATALOG.map(({ id, icon: Icon, color, bg, border, desc }) => {
-                const earned = emp.badges.includes(id);
-                return (
+            {emp.badges.length === 0 ? (
+              <div className="py-10 text-center border-2 border-dashed border-white/5 rounded-2xl">
+                <Trophy size={32} className="mx-auto mb-3 text-white/5" />
+                <p className="text-white/20 text-xs font-bold uppercase tracking-[0.2em]">Ready to begin your journey?</p>
+                <p className="text-white/10 text-[10px] mt-1">Complete tasks and clock in on time to unlock badges.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {BADGE_CATALOG.map(({ id, icon: Icon, color, bg, border, desc }) => {
+                  const earned = emp.badges.includes(id);
+                  if (!earned) return null; // Only show earned badges as per user request for "clear and empty"
+                  return (
                   <motion.div
                     key={id}
                     whileHover={{ scale: 1.04, y: -3 }}
@@ -151,12 +165,13 @@ export default function PerformanceModule({ employeeId }: Props) {
                     >
                       <Icon size={24} style={{ color: earned ? color : '#444' }} />
                     </div>
-                    <p className="text-xs font-bold" style={{ color: earned ? color : '#555' }}>{id}</p>
+                    <p className="text-xs font-bold" style={{ color: color }}>{id}</p>
                     <p className="text-xs text-white/30 mt-0.5 leading-tight">{desc}</p>
                   </motion.div>
                 );
               })}
             </div>
+            )}
           </motion.div>
         </div>
 
@@ -193,8 +208,8 @@ export default function PerformanceModule({ employeeId }: Props) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${entry.you ? 'text-cyan-400' : 'text-white/70'}`}>
-                    {entry.name} {entry.you && <span className="text-xs text-white/40">(you)</span>}
+                  <p className={`text-sm font-semibold truncate ${entry.id === emp.id ? 'text-cyan-400' : 'text-white/70'}`}>
+                    {entry.name} {entry.id === emp.id && <span className="text-xs text-white/40">(you)</span>}
                   </p>
                 </div>
                 <p className="text-xs font-bold font-mono text-white/60">
