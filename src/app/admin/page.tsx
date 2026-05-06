@@ -31,6 +31,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!session) { router.replace('/'); return; }
@@ -74,59 +75,88 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5" style={{ background: 'rgba(3,7,18,0.9)', backdropFilter: 'blur(20px)' }}>
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(217,70,239,0.3), rgba(168,85,247,0.2))', border: '1px solid rgba(217,70,239,0.4)' }}>
-              <ShieldCheck size={16} className="text-fuchsia-400" />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-white">Command Center</h1>
-              <p className="text-xs text-fuchsia-400/70">Admin — Abhinav Patta</p>
-            </div>
+    <div className="min-h-screen transition-colors duration-500">
+      {/* Header Bar */}
+      <header className="header-bar">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(217,70,239,0.3), rgba(168,85,247,0.2))', border: '1px solid rgba(217,70,239,0.4)' }}>
+            <ShieldCheck size={18} className="text-fuchsia-400" />
           </div>
-          <div className="flex items-center gap-2">
-            {pending > 0 && (
-              <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#fbbf24' }}>
-                <AlertCircle size={12} /> {pending} Pending
-              </motion.div>
-            )}
-            {submittedTasks > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.4)', color: '#c084fc' }}>
-                <ClipboardList size={12} /> {submittedTasks} Submissions
-              </div>
-            )}
-            <button onClick={() => { setSession(null); router.push('/'); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/50 hover:text-red-400 hover:bg-red-400/10 transition-all border border-white/10 hover:border-red-400/30">
-              <LogOut size={14} /> Logout
-            </button>
+          <div>
+            <h1 className="text-sm font-bold text-white tracking-tight">COMMAND CENTER</h1>
+            <p className="text-[10px] text-fuchsia-400/70 font-mono">ADMIN PORTAL v2.0</p>
           </div>
         </div>
 
-        {/* Tab nav */}
-        <div className="max-w-7xl mx-auto px-4 flex gap-1 pb-0 overflow-x-auto">
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all
-                ${activeTab === key
-                  ? 'border-fuchsia-500 text-fuchsia-400'
-                  : 'border-transparent text-white/40 hover:text-white/70 hover:border-white/20'}`}>
-              <Icon size={13} /> {label}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3 mr-4 border-r border-white/10 pr-4">
+            <div className="text-right">
+              <p className="text-xs font-bold text-white">Abhinav Patta</p>
+              <p className="text-[10px] text-fuchsia-400/70">Master Administrator</p>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+              <ShieldCheck size={16} className="text-fuchsia-400" />
+            </div>
+          </div>
+
+          <div className="relative">
+            <button 
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-fuchsia-400 hover:bg-fuchsia-500/10 transition-all"
+            >
+              <Menu size={20} />
             </button>
-          ))}
+            
+            <AnimatePresence>
+              {userMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-2 w-48 glass-card p-2 z-50 border border-white/10"
+                  >
+                    <button onClick={() => { setSession(null); router.push('/'); }} className="nav-item w-full text-red-400 hover:bg-red-400/10">
+                      <LogOut size={16} /> Logout System
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <AnimatePresence mode="wait">
-          <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
+      {/* Floating Navigation */}
+      <div className="floating-nav-container">
+        <nav className="floating-nav">
+          {TABS.map(({ key, label, icon: Icon }) => (
+            <button 
+              key={key} 
+              onClick={() => setActiveTab(key)}
+              className={`floating-nav-item ${activeTab === key ? 'active' : ''}`}
+            >
+              <Icon size={16} />
+              <span className="hidden md:block">{label}</span>
+              {key === 'employees' && pending > 0 && (
+                <span className="ml-1 w-4 h-4 rounded-full bg-amber-400 text-black text-[10px] flex items-center justify-center font-bold">{pending}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
 
+      <main className="page-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={activeTab} 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -20 }} 
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          >
             {/* ── OVERVIEW ── */}
             {activeTab === 'overview' && (
               <div className="space-y-6">

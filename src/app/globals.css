@@ -64,8 +64,8 @@ html {
 }
 
 body {
-  background-color: #030712;
-  color: #f1f5f9;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -137,6 +137,79 @@ body {
 .text-neon-lime {
   color: var(--cyber-lime);
   text-shadow: 0 0 10px rgba(132, 204, 22, 0.8), 0 0 20px rgba(132, 204, 22, 0.4);
+}
+
+/* Header bar */
+.header-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(3, 7, 18, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1000;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Floating Navigation */
+.floating-nav-container {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  width: auto;
+  pointer-events: none;
+}
+
+.floating-nav {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 1.25rem;
+  display: flex;
+  gap: 0.25rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.floating-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.floating-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.floating-nav-item.active {
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
+}
+
+/* Page container adjust */
+.page-content-wrapper {
+  padding-top: 150px;
+  min-height: 100vh;
 }
 
 /* Neon border glow */
@@ -225,24 +298,41 @@ body {
 .cyber-input {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   color: #f1f5f9;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem;
   width: 100%;
   font-family: 'Inter', sans-serif;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  appearance: none; /* For selects */
 }
 
 .cyber-input:focus {
   border-color: var(--cyber-blue);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1), 0 0 15px rgba(34, 211, 238, 0.1);
-  background: rgba(34, 211, 238, 0.03);
+  box-shadow: 
+    0 0 0 4px rgba(34, 211, 238, 0.05),
+    0 0 20px rgba(34, 211, 238, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+select.cyber-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  cursor: pointer;
+}
+
+select.cyber-input option {
+  background: #0f172a;
+  color: #f1f5f9;
+  padding: 1rem;
 }
 
 .cyber-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 /* PIN display */

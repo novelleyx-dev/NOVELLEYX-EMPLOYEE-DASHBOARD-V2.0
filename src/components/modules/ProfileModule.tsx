@@ -66,54 +66,58 @@ export default function ProfileModule({ employeeId }: Props) {
       >
         {/* ── Avatar card ─────────────────────────────────────────────── */}
         <motion.div variants={itemVariants} className="xl:col-span-1">
-          <div className="glass-card p-6 text-center">
+          <div className="glass-card p-6 text-center border-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.05)]">
             <div className="relative inline-block mb-4">
-              <div className="w-28 h-28 rounded-2xl mx-auto overflow-hidden border-2"
-                style={{ borderColor: 'rgba(34,211,238,0.4)', boxShadow: '0 0 20px rgba(34,211,238,0.2)' }}>
+              <div className="w-32 h-32 rounded-3xl mx-auto overflow-hidden border-2 p-1"
+                style={{ borderColor: 'rgba(34,211,238,0.3)', boxShadow: '0 0 30px rgba(34,211,238,0.1)' }}>
                 <img
                   src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a,0d1117&shapeColor=22d3ee,a855f7`}
                   alt={emp.name}
-                  className="w-full h-full"
+                  className="w-full h-full rounded-2xl"
                 />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-lime-400 rounded-full border-2 border-black flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full" />
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-lime-400 rounded-full border-4 border-black flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               </div>
             </div>
-            <h3 className="text-xl font-bold text-white">{emp.name}</h3>
-            <p className="text-cyan-400/80 text-sm mt-1">{emp.role || 'Software Engineer'}</p>
-            <p className="text-white/40 text-xs mt-0.5">{emp.department || 'Engineering'}</p>
+            <h3 className="text-2xl font-black text-white tracking-tight">{emp.name}</h3>
+            <p className="text-cyan-400/80 text-sm font-semibold mt-1 uppercase tracking-wider">{emp.role || 'Onboarding'}</p>
+            <p className="text-white/30 text-[10px] mt-1">{emp.department || 'General'}</p>
 
-            <div className="mt-5 pt-5 border-t border-white/5">
-              <p className="text-xs text-white/30 font-mono uppercase tracking-wider mb-2">Employee PIN</p>
-              <div className="font-mono text-sm font-bold text-cyan-400/60 tracking-widest">
+            <div className="mt-6 pt-6 border-t border-white/5">
+              <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] mb-2">Secure Access Key</p>
+              <div className="font-mono text-sm font-bold text-cyan-400/40 tracking-widest bg-white/5 py-2 rounded-lg border border-white/5">
                 ****-****-{emp.pin.slice(-4)}
               </div>
-            </div>
-
-            <div className="mt-4">
-              <span className={emp.status === 'APPROVED' ? 'badge-approved' : 'badge-pending'}>
-                {emp.status}
-              </span>
             </div>
           </div>
         </motion.div>
 
         {/* ── Details grid ─────────────────────────────────────────────── */}
         <motion.div variants={itemVariants} className="xl:col-span-2">
-          <div className="glass-card p-6 h-full">
-            <h3 className="font-bold text-white mb-5 flex items-center gap-2">
-              <User size={16} className="text-cyan-400" /> Personal Information
+          <div className="glass-card p-8 h-full border-white/5">
+            <h3 className="font-bold text-white mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+                <User size={16} className="text-cyan-400" />
+              </div>
+              Personal Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {infoItems.map(({ icon: Icon, label, value }) => (
-                <div key={label} className="p-3 rounded-xl bg-white/3 border border-white/6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon size={12} className="text-cyan-400/70" />
-                    <span className="text-xs text-white/40 font-semibold uppercase tracking-wider">{label}</span>
+              {[
+                { icon: User, label: 'Full Name', value: emp.name },
+                { icon: Mail, label: 'Email', value: emp.email },
+                { icon: Building2, label: 'Department', value: emp.department || 'Not Set' },
+                { icon: Briefcase, label: 'Role', value: emp.role || 'Not Set' },
+                { icon: Calendar, label: 'Joined', value: new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) },
+                { icon: Shield, label: 'Account Status', value: emp.status },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="p-4 rounded-2xl bg-white/2 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Icon size={12} className="text-cyan-400/50" />
+                    <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">{label}</span>
                   </div>
-                  <p className="text-sm text-white font-medium">
-                    {label === 'Status'
+                  <p className="text-sm text-white font-semibold">
+                    {label === 'Account Status'
                       ? <span className={value === 'APPROVED' ? 'badge-approved' : value === 'PENDING' ? 'badge-pending' : 'badge-rejected'}>{value}</span>
                       : value
                     }

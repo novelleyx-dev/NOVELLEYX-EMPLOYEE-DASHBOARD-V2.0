@@ -60,12 +60,11 @@ export default function AttendanceModule({ employeeId }: { employeeId: string })
         <p className="text-white/40 text-sm">Strict 4-hour daily shift · punch in &amp; out</p>
       </div>
 
-      {/* Clock In/Out Card */}
-      <div className="glass-card p-6">
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <div className="text-center">
-            <div className="digital-clock mb-1">{now.toLocaleTimeString()}</div>
-            <p className="text-white/40 text-xs font-mono">{now.toDateString()}</p>
+      <div className="glass-card p-6 border-cyan-400/10">
+        <div className="flex flex-col sm:flex-row gap-8 items-center">
+          <div className="text-center p-4 rounded-2xl bg-cyan-400/5 border border-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.05)]">
+            <div className="digital-clock mb-1 text-4xl sm:text-5xl">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+            <p className="text-cyan-400/40 text-xs font-mono uppercase tracking-[0.2em]">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
           </div>
 
           <div className="flex-1 space-y-3">

@@ -67,11 +67,14 @@ export default function CommLinkModule({ employeeId }: { employeeId: string }) {
               const isAdmin = msg.isAdmin;
               return (
                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`chat-bubble ${isMe ? 'chat-bubble-self' : 'chat-bubble-other'} ${isAdmin ? 'border-fuchsia-500/30' : ''}`}>
-                    <p className={`text-xs font-semibold mb-0.5 ${isAdmin ? 'text-fuchsia-400' : isMe ? 'text-cyan-400' : 'text-white/60'}`}>
-                      {isAdmin ? '🛡 ' : ''}{msg.senderName}
-                    </p>
-                    <p className="text-sm text-white/85">{msg.content}</p>
+                <div className={`chat-bubble ${isMe ? 'chat-bubble-self' : 'chat-bubble-other'} ${isAdmin ? 'border-fuchsia-500/30' : ''}`}>
+                    <div className="flex items-center justify-between gap-4 mb-1">
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${isAdmin ? 'text-fuchsia-400' : isMe ? 'text-cyan-400' : 'text-white/60'}`}>
+                        {isAdmin ? '🛡 ADMIN BROADCAST' : msg.senderName}
+                      </p>
+                      <p className="text-[10px] text-white/30 font-mono">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <p className="text-sm text-white/90 leading-relaxed">{msg.content}</p>
                     {msg.mediaUrl && (
                       <div className="mt-2">
                         {msg.mediaType === 'image' ? <img src={msg.mediaUrl} className="max-w-[200px] rounded-lg border border-white/10" alt="media" />
