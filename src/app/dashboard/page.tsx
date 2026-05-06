@@ -95,7 +95,7 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen transition-colors duration-500">
       {/* Header Bar */}
-      <header className="header-bar">
+      <header className="header-bar relative z-[1001]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, rgba(34,211,238,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(34,211,238,0.3)' }}>
@@ -192,7 +192,7 @@ export default function DashboardLayout() {
         </nav>
       </div>
 
-      <main className="page-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <main className="page-content-wrapper relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeModule} 

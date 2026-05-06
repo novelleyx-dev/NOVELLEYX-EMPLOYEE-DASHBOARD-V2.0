@@ -109,19 +109,19 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen text-slate-200 relative overflow-x-hidden">
       {/* Premium Admin Background Image */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <img 
           src="/admin-bg.jpg" 
-          className="w-full h-full object-cover opacity-40 mix-blend-luminosity scale-105"
+          className="w-full h-full object-cover opacity-30 mix-blend-luminosity scale-105"
           alt="background"
           style={{ filter: 'contrast(1.2) brightness(0.8)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
-        <div className="absolute inset-0 bg-[#03050a]/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90" />
+        <div className="absolute inset-0 bg-[#03050a]/60" />
       </div>
-      <div className="admin-grid-overlay opacity-20" />
+      <div className="admin-grid-overlay opacity-10 pointer-events-none" />
 
-      <header className="header-bar">
+      <header className="header-bar relative z-[1001]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, rgba(217,70,239,0.3), rgba(168,85,247,0.2))', border: '1px solid rgba(217,70,239,0.4)' }}>
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
         </nav>
       </div>
 
-      <main className="page-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <main className="page-content-wrapper relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab} 
