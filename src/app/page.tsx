@@ -112,9 +112,6 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-      setLoading(false);
-      return;
-    }
     // APPROVED
     setSession({ type: 'employee', employeeId: emp.id });
     setSuccess(`Welcome back, ${emp.name}! Initializing dashboard…`);
