@@ -69,8 +69,10 @@ export default function AdminDashboard() {
 
     // Cross-tab Synchronization
     const sync = (e: StorageEvent) => {
-      if (e.key === 'novelleyx-store-v6') {
-        window.location.reload(); // Hard refresh to ensure all state is current
+      if (e.key === 'novelleyx-store-v5' || e.key === 'novelleyx-store-v6') {
+        // Use rehydrate to update state without a hard reload
+        // This makes the 'notified' experience much smoother and real-time
+        useStore.persist.rehydrate();
       }
     };
     window.addEventListener('storage', sync);
@@ -131,6 +133,11 @@ export default function AdminDashboard() {
     setProcessing(id + action);
     await new Promise(r => setTimeout(r, 700));
     updateEmployeeStatus(id, action);
+    
+    // Auto-read related notification
+    const relatedNotif = adminNotifications.find(n => n.relatedId === id && n.type === 'SYSTEM');
+    if (relatedNotif) markAdminNotificationRead(relatedNotif.id);
+    
     setProcessing(null);
   };
 
@@ -233,52 +240,86 @@ export default function AdminDashboard() {
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         className="absolute right-0 mt-2 w-80 glass-card p-3 z-50 border border-white/10"
                       >
-                        <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-3 px-2">Notifications</h4>
-                        <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                        <div className="flex justify-between items-center mb-3 px-2 border-b border-white/5 pb-2">
+                          <h4 className="text-xs font-black text-white/40 uppercase tracking-widest">Command Center Alerts</h4>
+                          {adminNotifications.length > 0 && (
+                            <button 
+                              onClick={() => adminNotifications.forEach(n => markAdminNotificationRead(n.id))}
+                              className="text-[9px] text-cyan-400 hover:text-cyan-300 transition-colors uppercase font-bold tracking-tighter"
+                            >
+                              Clear All
+                            </button>
+                          )}
+                        </div>
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-1 custom-scrollbar">
                           {adminNotifications.length === 0 ? (
-                            <div className="py-8 text-center text-white/20 text-xs">No notifications yet.</div>
+                            <div className="py-12 text-center">
+                              <Bell size={24} className="mx-auto mb-2 opacity-10 text-white" />
+                              <p className="text-[10px] text-white/20 uppercase tracking-widest">No active alerts</p>
+                            </div>
                           ) : (
-                            adminNotifications.map(n => (
-                              <div 
-                                key={n.id} 
-                                onClick={() => markAdminNotificationRead(n.id)}
-                                className={`p-3 rounded-xl border transition-all cursor-pointer ${n.read ? 'bg-white/2 border-white/5 opacity-60' : 'bg-white/5 border-white/10 hover:border-cyan-400/30'}`}
-                              >
-                                <div className="flex justify-between items-start mb-1">
-                                  <p className={`text-xs font-bold ${n.type === 'TICKET' ? 'text-fuchsia-400' : 'text-cyan-400'}`}>{n.title}</p>
-                                  {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
-                                </div>
-                                <p className="text-[11px] text-white/60 leading-relaxed">{n.message}</p>
-                                
-                                {n.type === 'SYSTEM' && n.relatedId && employees.find(e => e.id === n.relatedId)?.status === 'PENDING' && (
-                                  <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'APPROVED'); }}
-                                      className="flex-1 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold hover:bg-emerald-500/30 transition-all"
-                                    >
-                                      Quick Approve
-                                    </button>
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'REJECTED'); }}
-                                      className="flex-1 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[10px] font-bold hover:bg-rose-500/30 transition-all"
-                                    >
-                                      Reject
-                                    </button>
+                            adminNotifications
+                              .filter(n => {
+                                // AUTO-FILTER: Only show 'New Registration' alerts for employees who are still PENDING
+                                // This solves the 'old ones coming and not approvible' problem
+                                if (n.type === 'SYSTEM' && n.title === 'New Registration' && n.relatedId) {
+                                  const emp = employees.find(e => e.id === n.relatedId);
+                                  return emp && emp.status === 'PENDING';
+                                }
+                                return true;
+                              })
+                              .map(n => (
+                                <div 
+                                  key={n.id} 
+                                  onClick={() => markAdminNotificationRead(n.id)}
+                                  className={`p-3 rounded-xl border transition-all cursor-pointer relative group ${n.read ? 'bg-white/2 border-white/5 opacity-60' : 'bg-white/5 border-white/10 hover:border-cyan-400/30'}`}
+                                >
+                                  <div className="flex justify-between items-start mb-1">
+                                    <p className={`text-[10px] font-black uppercase tracking-widest ${n.type === 'TICKET' ? 'text-fuchsia-400' : 'text-cyan-400'}`}>{n.title}</p>
+                                    {!n.read && <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
                                   </div>
-                                )}
+                                  <p className="text-[11px] text-white/70 leading-relaxed font-medium">{n.message}</p>
+                                  
+                                  {n.type === 'SYSTEM' && n.relatedId && employees.find(e => e.id === n.relatedId)?.status === 'PENDING' && (
+                                    <div className="flex gap-2 mt-3 pt-3 border-t border-white/10">
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'APPROVED'); }}
+                                        className="flex-1 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'REJECTED'); }}
+                                        className="flex-1 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all"
+                                      >
+                                        Reject
+                                      </button>
+                                    </div>
+                                  )}
 
-                                {n.type === 'TICKET' && n.relatedId && (
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); setActiveTab('tickets'); setNotifOpen(false); }}
-                                    className="w-full mt-2 py-1 rounded bg-fuchsia-500/10 text-fuchsia-400 text-[9px] font-bold uppercase tracking-widest border border-fuchsia-500/20"
-                                  >
-                                    View Ticket
-                                  </button>
-                                )}
+                                  {n.type === 'TICKET' && n.relatedId && (
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); setActiveTab('tickets'); setNotifOpen(false); }}
+                                      className="w-full mt-2 py-1.5 rounded-lg bg-fuchsia-500/10 text-fuchsia-400 text-[9px] font-black uppercase tracking-widest border border-fuchsia-500/20 hover:bg-fuchsia-500/20 transition-all"
+                                    >
+                                      Review Support Ticket
+                                    </button>
+                                  )}
 
-                                <p className="text-[9px] text-white/30 mt-2">{new Date(n.createdAt).toLocaleTimeString()}</p>
-                              </div>
-                            ))
+                                  <p className="text-[9px] text-white/20 mt-2 font-mono">{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                              ))
+                          )}
+                          {adminNotifications.length > 0 && adminNotifications.filter(n => {
+                             if (n.type === 'SYSTEM' && n.title === 'New Registration' && n.relatedId) {
+                               const emp = employees.find(e => e.id === n.relatedId);
+                               return emp && emp.status === 'PENDING';
+                             }
+                             return true;
+                          }).length === 0 && (
+                            <div className="py-8 text-center text-white/20 text-[10px] uppercase tracking-widest">
+                              All registrations processed
+                            </div>
                           )}
                         </div>
                       </motion.div>
