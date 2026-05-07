@@ -419,6 +419,52 @@ export default function AdminDashboard() {
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="129,140,248" sub={`${submittedTasks} awaiting review`} />
                 </div>
 
+                {/* System Metrics Management */}
+                <div className="glass-card p-6 border-fuchsia-500/10">
+                  <h3 className="font-bold text-white mb-6 flex items-center gap-2">
+                    <Settings size={18} className="text-fuchsia-400" /> System Metrics Management
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div>
+                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Monthly Productivity (Last 7 Months)</label>
+                      <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                        {monthlyProductivity.map((val, i) => (
+                          <div key={i} className="flex flex-col gap-1">
+                            <span className="text-[8px] text-center text-white/30 uppercase font-bold tracking-widest">M-{7-i}</span>
+                            <input 
+                              type="number" 
+                              value={val}
+                              onChange={(e) => {
+                                const newData = [...monthlyProductivity];
+                                newData[i] = parseInt(e.target.value) || 0;
+                                updateMonthlyProductivity(newData);
+                              }}
+                              className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 text-center text-white text-xs font-bold focus:border-fuchsia-400/50 outline-none transition-all hover:bg-white/10"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Company Progress (%)</label>
+                      <div className="pt-2">
+                        <input 
+                          type="range" 
+                          min="0" max="100" 
+                          value={companyProgress}
+                          onChange={(e) => updateCompanyProgress(parseInt(e.target.value))}
+                          className="w-full accent-fuchsia-500 h-2 bg-white/5 rounded-lg appearance-none cursor-pointer hover:bg-white/10 transition-all"
+                        />
+                        <div className="flex justify-between mt-3 text-[10px] font-mono text-white/30">
+                          <span>0%</span>
+                          <span className="text-fuchsia-400 font-bold px-2 py-1 rounded bg-fuchsia-500/10">{companyProgress}%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Workforce Attendance Analytics */}

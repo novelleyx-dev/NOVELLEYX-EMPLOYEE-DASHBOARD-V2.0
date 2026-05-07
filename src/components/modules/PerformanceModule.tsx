@@ -119,13 +119,6 @@ export default function PerformanceModule({ employeeId }: Props) {
           <p className="text-white/40 text-sm mt-1">Your XP progression, badges earned, and internal evaluations.</p>
         </div>
         <div className="flex gap-3">
-          <div className="glass-card px-4 py-2 flex items-center gap-3 border-amber-400/20">
-            <Globe size={16} className="text-amber-400" />
-            <div>
-              <p className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Company Progress</p>
-              <p className="text-sm font-black text-white">{companyProgress}%</p>
-            </div>
-          </div>
         </div>
       </div>
 
