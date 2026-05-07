@@ -52,13 +52,21 @@ export default function LoginPage() {
 
   // Scanning line ref
   const pinRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // If already logged in, redirect
   const session = useStore((s) => s.session);
   useEffect(() => {
+    if (!mounted) return;
     if (session?.type === 'admin') router.replace('/admin');
     else if (session?.type === 'employee') router.replace('/dashboard');
-  }, [session, router]);
+  }, [session, router, mounted]);
+
+  if (!mounted) return null;
 
   const clearMessages = () => {
     setError('');

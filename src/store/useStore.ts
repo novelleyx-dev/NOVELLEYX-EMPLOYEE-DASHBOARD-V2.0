@@ -348,7 +348,17 @@ export const useStore = create<NovelleyXStore>()(
           xp: 0,
           badges: [],
         };
-        set((state) => ({ employees: [...state.employees, newEmployee] }));
+        set((state) => ({ 
+          employees: [...state.employees, newEmployee] 
+        }));
+
+        // Add Admin Notification
+        get().addAdminNotification(
+          'New Registration',
+          `${newEmployee.name} (${newEmployee.email}) is awaiting approval.`,
+          'SYSTEM'
+        );
+
         return pin;
       },
 

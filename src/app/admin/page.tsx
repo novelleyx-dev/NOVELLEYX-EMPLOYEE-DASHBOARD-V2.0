@@ -32,7 +32,12 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { session, setSession, employees, updateEmployeeStatus, tasks, meetings, getSettings, updateEmployeeRole, attendance, adminNotifications, markAdminNotificationRead } = useStore();
+  const { 
+    session, setSession, employees, updateEmployeeStatus, tasks, meetings, 
+    getSettings, updateEmployeeRole, attendance, adminNotifications, 
+    markAdminNotificationRead, monthlyProductivity, updateMonthlyProductivity,
+    companyProgress, updateCompanyProgress, updateEmployeeEvaluation 
+  } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
@@ -41,8 +46,10 @@ export default function AdminDashboard() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const hasSeenWelcome = sessionStorage.getItem('adminWelcome');
     if (!hasSeenWelcome) {
       setWelcomeOpen(true);
@@ -85,7 +92,7 @@ export default function AdminDashboard() {
     if (session.type !== 'admin') { router.replace('/dashboard'); }
   }, [session, router]);
 
-  if (!session || session.type !== 'admin') return null;
+  if (!mounted || !session || session.type !== 'admin') return null;
 
   const pending = employees.filter(e => e.status === 'PENDING').length;
   const approved = employees.filter(e => e.status === 'APPROVED').length;
@@ -234,6 +241,13 @@ export default function AdminDashboard() {
               </div>
 
               <button 
+                onClick={() => window.location.reload()}
+                className="p-2 rounded-xl border border-white/5 text-white/40 hover:bg-white/5 hover:text-white transition-all"
+                title="Refresh System"
+              >
+                <RefreshCw size={18} />
+              </button>
+              <button 
                 onClick={() => setActiveTab('settings')}
                 className={`p-2 rounded-xl border transition-all ${activeTab === 'settings' ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
                 title="Admin Settings"
@@ -282,7 +296,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatCard icon={Users} label="Total Employees" value={employees.length} color="34,211,238" chartData={monthlyProductivity} />
                   <StatCard icon={AlertCircle} label="Pending Approval" value={pending} color="245,158,11" chartData={[10, 20, 15, 30, 25, 40, 20]} />
-                  <StatCard icon={Activity} label="Company Progress" value={`${companyProgress}%`} color="132,204,22" chartData={[companyProgress, companyProgress, companyProgress, companyProgress, companyProgress, companyProgress, companyProgress]} />
+                  <StatCard icon={UserCheck} label="Approved" value={approved} color="132,204,22" chartData={[20, 40, 30, 50, 40, 60, 70]} />
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
                 </div>
 

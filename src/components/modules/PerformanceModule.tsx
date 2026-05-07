@@ -5,7 +5,7 @@
  * XP bar, level, badges with Framer Motion hover effects
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Trophy, Star, Zap, Shield, Clock, Bug, Flame, Target, Award, TrendingUp, Printer, Download, Layout, MessageCircle, Globe } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
@@ -47,7 +47,6 @@ export default function PerformanceModule({ employeeId }: Props) {
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 10);
 
-  const { customBadges } = useStore();
   const allBadges = [...BADGE_CATALOG, ...customBadges.map(b => ({
     id: b.label,
     icon: Star, // Default icon for custom
