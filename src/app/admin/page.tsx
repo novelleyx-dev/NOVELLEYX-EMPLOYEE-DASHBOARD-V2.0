@@ -47,6 +47,17 @@ export default function AdminDashboard() {
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', role: 'employee' as Designation });
+  const [manualPin, setManualPin] = useState<string | null>(null);
+  const { addEmployee } = useStore();
+
+  const handleManualAdd = () => {
+    if (!newEmp.name || !newEmp.email) return;
+    const pin = addEmployee({ ...newEmp, department: '' });
+    setManualPin(pin);
+    setNewEmp({ name: '', email: '', role: 'employee' });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -55,6 +66,15 @@ export default function AdminDashboard() {
       setWelcomeOpen(true);
       sessionStorage.setItem('adminWelcome', 'true');
     }
+
+    // Cross-tab Synchronization
+    const sync = (e: StorageEvent) => {
+      if (e.key === 'novelleyx-store-v4') {
+        window.location.reload(); // Hard refresh to ensure all state is current
+      }
+    };
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
   }, []);
 
   const settings = getSettings('admin');
@@ -444,33 +464,95 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {pending > 0 && (
-                  <div className="glass-card p-5">
-                    <h3 className="font-bold text-amber-400 text-sm mb-3 flex items-center gap-2"><AlertCircle size={14} /> Pending Approvals</h3>
-                    <div className="space-y-2">
-                      {employees.filter(e => e.status === 'PENDING').map(emp => (
-                        <div key={emp.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-400/5 border border-amber-400/15">
-                          <div className="flex items-center gap-2">
-                            {emp.profilePhoto ? (
-                              <img src={emp.profilePhoto} className="w-8 h-8 rounded-lg object-cover border border-white/10" alt={emp.name} />
-                            ) : (
+                {/* Quick Management Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="glass-card p-6 border-amber-500/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-amber-400 text-sm flex items-center gap-2"><AlertCircle size={14} /> Pending Approvals</h3>
+                      <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{pending} Awaiting Review</span>
+                    </div>
+                    {pending === 0 ? (
+                      <div className="py-8 text-center text-white/10 border border-dashed border-white/10 rounded-xl">
+                        <p className="text-xs">No pending registration requests.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                        {employees.filter(e => e.status === 'PENDING').map(emp => (
+                          <div key={emp.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-400/5 border border-amber-400/15">
+                            <div className="flex items-center gap-2">
                               <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
-                            )}
-                            <div><p className="text-sm font-semibold text-white">{emp.name}</p><p className="text-xs text-white/40">{emp.email}</p></div>
+                              <div>
+                                <p className="text-sm font-semibold text-white">{emp.name}</p>
+                                <p className="text-[10px] text-white/30 uppercase tracking-tighter">Requested: {new Date(emp.createdAt).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/30 transition-all">
+                                {processing === emp.id + 'APPROVED' ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                              </button>
+                              <button onClick={() => handleAction(emp.id, 'REJECTED')} disabled={!!processing} className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center hover:bg-rose-500/30 transition-all">
+                                {processing === emp.id + 'REJECTED' ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="btn-approve flex items-center gap-1 text-xs">
-                              {processing === emp.id + 'APPROVED' ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />} Approve
-                            </button>
-                            <button onClick={() => handleAction(emp.id, 'REJECTED')} disabled={!!processing} className="btn-reject flex items-center gap-1 text-xs">
-                              {processing === emp.id + 'REJECTED' ? <Loader2 size={11} className="animate-spin" /> : <XCircle size={11} />} Reject
-                            </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="glass-card p-6 border-cyan-500/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-cyan-400 text-sm flex items-center gap-2"><Users size={14} /> Add New Staff</h3>
+                      <button onClick={() => setShowAddForm(!showAddForm)} className="text-[10px] text-cyan-400 hover:underline uppercase font-bold tracking-widest">{showAddForm ? 'Hide' : 'Manual Entry'}</button>
+                    </div>
+                    {showAddForm ? (
+                      <div className="space-y-3">
+                        <input type="text" placeholder="Full Name" value={newEmp.name} onChange={e => setNewEmp({...newEmp, name: e.target.value})} className="cyber-input py-2 text-xs" />
+                        <input type="email" placeholder="Email Address" value={newEmp.email} onChange={e => setNewEmp({...newEmp, email: e.target.value})} className="cyber-input py-2 text-xs" />
+                        <select value={newEmp.role} onChange={e => setNewEmp({...newEmp, role: e.target.value as Designation})} className="cyber-input py-2 text-xs">
+                          <option value="employee">Employee</option>
+                          <option value="founding piller">Founding Piller</option>
+                          <option value="intern">Intern</option>
+                          <option value="fresher">Fresher</option>
+                          <option value="HR">HR</option>
+                          <option value="Team leader">Team Leader</option>
+                        </select>
+                        <button onClick={handleManualAdd} className="w-full py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-xs font-black uppercase tracking-widest hover:bg-cyan-400/20 transition-all">Register Employee</button>
+                        {manualPin && (
+                          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center animate-pulse">
+                            <p className="text-[10px] font-bold">GENERATED PIN: {manualPin}</p>
+                            <button onClick={() => setManualPin(null)} className="text-[8px] underline mt-1">Dismiss</button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-white/10 border border-dashed border-white/10 rounded-xl">
+                        <p className="text-xs">Use registration form or manual entry.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Workforce Roster - SHOW ALL EMPLOYEES */}
+                <div className="glass-card p-6">
+                  <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2"><LayoutDashboard size={14} className="text-fuchsia-400" /> Active Workforce Roster</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {employees.filter(e => e.status === 'APPROVED').length === 0 ? (
+                      <div className="col-span-full py-10 text-center text-white/20">No active employees found.</div>
+                    ) : (
+                      employees.filter(e => e.status === 'APPROVED').map(emp => (
+                        <div key={emp.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all">
+                          <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-10 h-10 rounded-lg" alt={emp.name} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white truncate">{emp.name}</p>
+                            <p className="text-[10px] text-fuchsia-400 font-mono uppercase">{emp.role}</p>
+                            <p className="text-[9px] text-white/20">Joined: {new Date(emp.createdAt).toLocaleDateString()}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      ))
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
