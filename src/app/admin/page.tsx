@@ -6,7 +6,8 @@ import {
   ShieldCheck, Users, AlertCircle, LogOut, Search, CheckCircle2, XCircle,
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
   Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings, Bell,
-  ExternalLink, Github, Globe, Instagram, Facebook, Youtube, Phone, FileBadge, SparklesIcon
+  ExternalLink, Github, Globe, Instagram, Facebook, Youtube, Phone, FileBadge, 
+  Clock
 } from 'lucide-react';
 import { useStore, Employee, Designation } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';
@@ -362,9 +363,6 @@ export default function AdminDashboard() {
             >
               <Icon size={16} />
               <span className="hidden md:block">{label}</span>
-              {key === 'employees' && pending > 0 && (
-                <span className="ml-1 w-4 h-4 rounded-full bg-amber-400 text-black text-[10px] flex items-center justify-center font-bold">{pending}</span>
-              )}
             </button>
           ))}
         </nav>
@@ -598,7 +596,6 @@ export default function AdminDashboard() {
                     )}
                   </div>
                 </div>
-                </div>
 
                 {/* Workforce Roster - SHOW ALL EMPLOYEES */}
                 <div className="glass-card p-6">
@@ -632,8 +629,8 @@ export default function AdminDashboard() {
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees…" className="cyber-input pl-9" />
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
-                      <button key={f} onClick={() => setFilter(f)}
+                    {(['ALL', 'APPROVED', 'REJECTED'] as const).map(f => (
+                      <button key={f} onClick={() => setFilter(f as any)}
                         className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border
                           ${filter === f ? 'bg-cyan-400/10 border-cyan-400/40 text-cyan-400' : 'border-white/10 text-white/40 hover:text-white/70'}`}>
                         {f}

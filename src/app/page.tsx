@@ -44,6 +44,7 @@ export default function LoginPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regRole, setRegRole] = useState<Designation>('employee');
   const [generatedPin, setGeneratedPin] = useState<string | null>(null);
+  const [secretPin, setSecretPin] = useState('');
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -191,7 +192,7 @@ export default function LoginPage() {
           {(['login', 'register'] as Tab[]).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); clearMessages(); setGeneratedPin(null); }}
+              onClick={() => { setTab(t); clearMessages(); setGeneratedPin(null); setSecretPin(''); setEmpPin(''); }}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 capitalize
                 ${tab === t
                   ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 shadow-[0_0_15px_rgba(34,211,238,0.15)]'
@@ -218,7 +219,7 @@ export default function LoginPage() {
                 {/* Login mode toggle */}
                 <div className="flex gap-2 mb-6">
                   <button
-                    onClick={() => { setLoginMode('employee'); clearMessages(); }}
+                    onClick={() => { setLoginMode('employee'); clearMessages(); setSecretPin(''); setEmpPin(''); }}
                     className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all border
                       ${loginMode === 'employee'
                         ? 'bg-cyan-400/10 border-cyan-400/40 text-cyan-400'
@@ -227,7 +228,7 @@ export default function LoginPage() {
                     <User size={12} className="inline mr-1" /> Employee
                   </button>
                   <button
-                    onClick={() => { setLoginMode('admin'); clearMessages(); }}
+                    onClick={() => { setLoginMode('admin'); clearMessages(); setSecretPin(''); setEmpPin(''); }}
                     className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all border
                       ${loginMode === 'admin'
                         ? 'bg-fuchsia-500/10 border-fuchsia-500/40 text-fuchsia-400'
@@ -446,10 +447,10 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 p-3 rounded-lg bg-amber-400/5 border border-amber-400/20">
-                  <p className="text-amber-400/80 text-xs">
-                    <AlertCircle size={10} className="inline mr-1" />
-                    Your account will be in <strong>PENDING</strong> status until an Admin approves it. Save your generated PIN securely.
+                <div className="mt-5 p-3 rounded-lg bg-cyan-400/5 border border-cyan-400/20">
+                  <p className="text-cyan-400/80 text-xs text-center">
+                    <ShieldCheck size={10} className="inline mr-1" />
+                    Secure registration active. Your unique 12-digit PIN will be generated instantly.
                   </p>
                 </div>
 
@@ -491,10 +492,9 @@ export default function LoginPage() {
                 </div>
 
                 <div className="p-3 rounded-lg bg-cyan-400/5 border border-cyan-400/15 text-left mb-6">
-                  <p className="text-cyan-400/70 text-xs leading-relaxed">
-                    <ShieldCheck size={10} className="inline mr-1" />
-                    Status: <span className="badge-pending">PENDING APPROVAL</span><br />
-                    An admin must approve your account before you can log in. Contact <strong>abhinav.patta01@gmail.com</strong> to expedite.
+                  <p className="text-cyan-400/70 text-xs leading-relaxed text-center">
+                    <CheckCircle2 size={10} className="inline mr-1" />
+                    Registration Successful! You can now log in using your 12-digit PIN and the system default 4-digit Secret Key.
                   </p>
                 </div>
 

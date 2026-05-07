@@ -357,7 +357,7 @@ export const useStore = create<NovelleyXStore>()(
         // Add Admin Notification
         get().addAdminNotification(
           'New Registration',
-          `${newEmployee.name} (${newEmployee.email}) is awaiting approval. PIN: ${pin}`,
+          `${newEmployee.name} (${newEmployee.email}) has joined. PIN: ${pin}`,
           'SYSTEM',
           id
         );
@@ -366,7 +366,7 @@ export const useStore = create<NovelleyXStore>()(
         get().sendMessage(
           'SYSTEM', 
           'System Protocol', 
-          `🚨 NEW REGISTRATION: ${newEmployee.name} is awaiting approval. Secure Key (PIN) has been generated.`, 
+          `🚨 NEW REGISTRATION: ${newEmployee.name} has successfully joined. Secure Key (PIN) has been assigned.`, 
           true
         );
 
