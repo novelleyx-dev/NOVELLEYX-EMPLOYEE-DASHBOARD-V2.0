@@ -15,7 +15,7 @@ import AdminMeetingsModule from '@/components/modules/admin/MeetingsModule';
 import AdminFilesModule from '@/components/modules/admin/FilesModule';
 import SettingsModule from '@/components/modules/SettingsModule';
 
-type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges' | 'settings' | 'tickets';
+type AdminTab = 'overview' | 'employees' | 'attendance' | 'tasks' | 'comms' | 'meetings' | 'files' | 'badges' | 'settings' | 'tickets';
 
 const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -533,8 +533,8 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Quick Management Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2                   <div className="glass-card p-6 border-emerald-500/20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="glass-card p-6 border-emerald-500/20">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-bold text-emerald-400 text-sm flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Now</h3>
                       <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{liveCount} Active Sessions</span>
@@ -565,7 +565,6 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
- </div>
 
                   <div className="glass-card p-6 border-cyan-500/20">
                     <div className="flex items-center justify-between mb-4">
@@ -598,6 +597,7 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
+                </div>
                 </div>
 
                 {/* Workforce Roster - SHOW ALL EMPLOYEES */}
