@@ -227,6 +227,9 @@ interface NovelleyXStore {
   updateEmployeeRole: (id: string, role: Designation) => void;
   updateEmployeeSocials: (id: string, socials: Employee['socials']) => void;
 
+  adminProfile: { name: string; photo?: string };
+  updateAdminProfile: (name: string, photo?: string) => void;
+
   tasks: Task[];
   assignTask: (task: Omit<Task, 'id' | 'assignedAt' | 'status'>) => string;
   submitTask: (taskId: string, submissionPhoto: string, note: string) => void;
@@ -428,6 +431,11 @@ export const useStore = create<NovelleyXStore>()(
         set((state) => ({
           employees: state.employees.map((e) => e.id === id ? { ...e, socials } : e)
         }));
+      },
+
+      adminProfile: { name: 'Admin', photo: '' },
+      updateAdminProfile: (name, photo) => {
+        set((state) => ({ adminProfile: { name, photo: photo || state.adminProfile.photo } }));
       },
 
       // ── Attendance ──────────────────────────────────────────────────────────

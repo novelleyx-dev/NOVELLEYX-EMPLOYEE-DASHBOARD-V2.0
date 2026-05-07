@@ -36,9 +36,11 @@ const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
 };
 
 export default function SettingsModule({ employeeId }: { employeeId: string }) {
-  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile, submitTicket, updateEmployeeSocials } = useStore();
+  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile, submitTicket, updateEmployeeSocials, adminProfile, updateAdminProfile } = useStore();
   const settings = getSettings(employeeId);
-  const emp = getEmployeeById(employeeId);
+  const emp = employeeId === 'admin' 
+    ? { id: 'admin', name: adminProfile.name, profilePhoto: adminProfile.photo, role: 'founding piller', department: 'Administration', socials: {} } as any
+    : getEmployeeById(employeeId);
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saved, setSaved] = useState(false);
@@ -86,8 +88,12 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
 
   const handleSave = () => {
     updateSettings(employeeId, { bio });
-    updateEmployeeProfile(employeeId, name);
-    updateEmployeeSocials(employeeId, { linkedin, github, twitter, portfolio, whatsapp, instagram, youtube, facebook });
+    if (employeeId === 'admin') {
+      updateAdminProfile(name);
+    } else {
+      updateEmployeeProfile(employeeId, name);
+      updateEmployeeSocials(employeeId, { linkedin, github, twitter, portfolio, whatsapp, instagram, youtube, facebook });
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -178,7 +184,11 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                             const reader = new FileReader();
                             reader.onload = () => {
                               const photo = reader.result as string;
-                              updateEmployeeProfile(employeeId, name, photo);
+                              if (employeeId === 'admin') {
+                                updateAdminProfile(name, photo);
+                              } else {
+                                updateEmployeeProfile(employeeId, name, photo);
+                              }
                               updateSettings(employeeId, { profilePhoto: photo });
                               setSaved(true);
                               setTimeout(() => setSaved(false), 2000);

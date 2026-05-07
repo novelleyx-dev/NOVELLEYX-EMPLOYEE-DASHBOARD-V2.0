@@ -5,7 +5,7 @@ import { Send, Paperclip, Users, User, MessageSquare, Image as ImageIcon, Video 
 import { useStore } from '@/store/useStore';
 
 export default function AdminChatModule() {
-  const { employees, messages, sendMessage, dmMessages, sendDM, getDMThread } = useStore();
+  const { employees, messages, sendMessage, dmMessages, sendDM, getDMThread, adminProfile } = useStore();
   const approved = employees.filter(e => e.status === 'APPROVED');
 
   const [mode, setMode] = useState<'broadcast' | 'dm'>('broadcast');
@@ -33,14 +33,14 @@ export default function AdminChatModule() {
 
   const handleBroadcast = () => {
     if (!broadcastText.trim() && !mediaPreview) return;
-    sendMessage('admin', 'Admin — Abhinav', broadcastText.trim() || '📎 Media attachment', true, mediaPreview?.url, mediaPreview?.type);
+    sendMessage('admin', `${adminProfile.name} (Admin)`, broadcastText.trim() || '📎 Media attachment', true, mediaPreview?.url, mediaPreview?.type);
     setBroadcastText(''); setMediaPreview(null);
   };
 
   const handleSendDM = () => {
     if (!selectedEmp || (!dmText.trim() && !mediaPreview)) return;
     const emp = employees.find(e => e.id === selectedEmp);
-    sendDM('admin', selectedEmp, 'Admin — Abhinav', dmText.trim() || '📎 Media', mediaPreview?.url, mediaPreview?.type);
+    sendDM('admin', selectedEmp, `${adminProfile.name} (Admin)`, dmText.trim() || '📎 Media', mediaPreview?.url, mediaPreview?.type);
     setDmText(''); setMediaPreview(null);
   };
 
