@@ -619,7 +619,7 @@ export const useStore = create<NovelleyXStore>()(
       },
     }),
     {
-      name: 'novelleyx-store-v4',
+      name: 'novelleyx-store-v5',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         employees: state.employees,

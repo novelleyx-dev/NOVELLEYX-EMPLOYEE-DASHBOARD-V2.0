@@ -741,6 +741,24 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                           </button>
                         </div>
                       </div>
+
+                      {employeeId === 'admin' && (
+                        <div className="p-6 rounded-2xl bg-rose-600/5 border border-rose-600/20 mt-6">
+                          <h4 className="text-sm font-bold text-rose-500 mb-2 flex items-center gap-2"><Trash2 size={16} /> Master System Reset</h4>
+                          <p className="text-white/40 text-xs mb-6">CRITICAL: This will wipe ALL employee accounts, tasks, and system logs from this device. Use only for fresh production starts.</p>
+                          <button 
+                            onClick={() => {
+                              if (confirm('CRITICAL: Wipe entire NovelleyX database?')) {
+                                localStorage.removeItem('novelleyx-store-v5');
+                                window.location.href = '/';
+                              }
+                            }}
+                            className="w-full py-4 rounded-xl bg-rose-600/10 border border-rose-600/40 text-rose-500 text-xs font-black uppercase tracking-widest hover:bg-rose-600/20 transition-all"
+                          >
+                            Execute Global Wipe
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
