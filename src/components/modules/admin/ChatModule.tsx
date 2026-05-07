@@ -89,26 +89,29 @@ export default function AdminChatModule() {
           <div className="lg:col-span-3 glass-card p-5">
             <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2"><MessageSquare size={14} className="text-cyan-400" /> Comm-Link Feed</h3>
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-              {[...messages].reverse().map(msg => (
-                <div key={msg.id} className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center flex-shrink-0 text-xs font-bold text-fuchsia-400">
-                    {msg.senderName.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-fuchsia-400">{msg.senderName}</span>
-                      <span className="text-xs text-white/30">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {[...messages].reverse().map(msg => {
+                const isSystem = msg.senderId === 'SYSTEM';
+                return (
+                  <div key={msg.id} className={`flex gap-3 p-2 rounded-xl transition-all ${isSystem ? 'bg-amber-400/5 border border-amber-400/10' : ''}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${isSystem ? 'bg-amber-400/20 text-amber-400' : 'bg-fuchsia-500/20 text-fuchsia-400'}`}>
+                      {isSystem ? '!' : msg.senderName.charAt(0)}
                     </div>
-                    <p className="text-sm text-white/70">{msg.content}</p>
-                    {msg.mediaUrl && (
-                      <div className="mt-1">
-                        {msg.mediaType === 'image' ? <img src={msg.mediaUrl} className="max-w-[200px] rounded-lg border border-white/10" alt="media" />
-                          : <video src={msg.mediaUrl} controls className="max-w-[200px] rounded-lg border border-white/10" />}
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className={`text-xs font-semibold ${isSystem ? 'text-amber-400' : 'text-fuchsia-400'}`}>{msg.senderName}</span>
+                        <span className="text-xs text-white/30">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
-                    )}
+                      <p className={`text-sm ${isSystem ? 'text-amber-200/90 font-mono italic' : 'text-white/70'}`}>{msg.content}</p>
+                      {msg.mediaUrl && (
+                        <div className="mt-1">
+                          {msg.mediaType === 'image' ? <img src={msg.mediaUrl} className="max-w-[200px] rounded-lg border border-white/10" alt="media" />
+                            : <video src={msg.mediaUrl} controls className="max-w-[200px] rounded-lg border border-white/10" />}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

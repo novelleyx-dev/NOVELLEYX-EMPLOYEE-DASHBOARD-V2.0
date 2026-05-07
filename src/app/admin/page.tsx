@@ -69,7 +69,7 @@ export default function AdminDashboard() {
 
     // Cross-tab Synchronization
     const sync = (e: StorageEvent) => {
-      if (e.key === 'novelleyx-store-v4') {
+      if (e.key === 'novelleyx-store-v6') {
         window.location.reload(); // Hard refresh to ensure all state is current
       }
     };
@@ -249,6 +249,33 @@ export default function AdminDashboard() {
                                   {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
                                 </div>
                                 <p className="text-[11px] text-white/60 leading-relaxed">{n.message}</p>
+                                
+                                {n.type === 'SYSTEM' && n.relatedId && employees.find(e => e.id === n.relatedId)?.status === 'PENDING' && (
+                                  <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'APPROVED'); }}
+                                      className="flex-1 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold hover:bg-emerald-500/30 transition-all"
+                                    >
+                                      Quick Approve
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'REJECTED'); }}
+                                      className="flex-1 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[10px] font-bold hover:bg-rose-500/30 transition-all"
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
+
+                                {n.type === 'TICKET' && n.relatedId && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setActiveTab('tickets'); setNotifOpen(false); }}
+                                    className="w-full mt-2 py-1 rounded bg-fuchsia-500/10 text-fuchsia-400 text-[9px] font-bold uppercase tracking-widest border border-fuchsia-500/20"
+                                  >
+                                    View Ticket
+                                  </button>
+                                )}
+
                                 <p className="text-[9px] text-white/30 mt-2">{new Date(n.createdAt).toLocaleTimeString()}</p>
                               </div>
                             ))
@@ -580,7 +607,7 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="cyber-table">
-                        <thead><tr><th>Employee</th><th>Department</th><th className="hidden md:table-cell">PIN</th><th>Status</th><th>Joined</th><th className="text-right">Actions</th></tr></thead>
+                        <thead><tr><th>Employee</th><th>Role/Position</th><th className="hidden md:table-cell">Secure PIN</th><th>Status</th><th>Joined</th><th className="text-right">Actions</th></tr></thead>
                         <tbody>
                           {filtered.map((emp, i) => (
                             <motion.tr key={emp.id} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
@@ -660,31 +687,39 @@ export default function AdminDashboard() {
                                 </div>
                               </td>
                               <td>
-                                <select 
-                                  value={emp.role} 
-                                  onChange={(e) => {
-                                    const newRole = e.target.value as Designation;
-                                    setProcessing(emp.id + 'ROLE');
-                                    setTimeout(() => {
-                                      updateEmployeeRole(emp.id, newRole);
-                                      setProcessing(null);
-                                    }, 500);
-                                  }}
-                                  className={`role-badge bg-transparent border-none cursor-pointer outline-none ${
-                                    emp.role === 'founding piller' ? 'role-piller' : 
-                                    emp.role === 'Team leader' ? 'role-leader' : 
-                                    emp.role === 'HR' ? 'role-hr' : 
-                                    emp.role === 'intern' ? 'role-intern' :
-                                    emp.role === 'fresher' ? 'role-fresher' : 'role-employee'
-                                  }`}
-                                >
-                                  <option value="employee">Employee</option>
-                                  <option value="founding piller">Founding Piller</option>
-                                  <option value="intern">Intern</option>
-                                  <option value="fresher">Fresher</option>
-                                  <option value="HR">HR</option>
-                                  <option value="Team leader">Team Leader</option>
-                                </select>
+                                <div className="flex flex-col">
+                                  <select 
+                                    value={emp.role} 
+                                    onChange={(e) => {
+                                      const newRole = e.target.value as Designation;
+                                      setProcessing(emp.id + 'ROLE');
+                                      setTimeout(() => {
+                                        updateEmployeeRole(emp.id, newRole);
+                                        setProcessing(null);
+                                      }, 500);
+                                    }}
+                                    className={`role-badge bg-transparent border-none cursor-pointer outline-none ${
+                                      emp.role === 'founding piller' ? 'role-piller' : 
+                                      emp.role === 'Team leader' ? 'role-leader' : 
+                                      emp.role === 'HR' ? 'role-hr' : 
+                                      emp.role === 'intern' ? 'role-intern' :
+                                      emp.role === 'fresher' ? 'role-fresher' : 'role-employee'
+                                    }`}
+                                  >
+                                    <option value="employee">Employee</option>
+                                    <option value="founding piller">Founding Piller</option>
+                                    <option value="intern">Intern</option>
+                                    <option value="fresher">Fresher</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Team leader">Team Leader</option>
+                                  </select>
+                                  <span className="text-[9px] text-white/20 ml-2">{emp.department}</span>
+                                </div>
+                              </td>
+                              <td className="hidden md:table-cell">
+                                <code className="text-[10px] font-mono bg-white/5 px-2 py-1 rounded border border-white/10 text-cyan-400">
+                                  {emp.pin.slice(0,4)}-{emp.pin.slice(4,8)}-{emp.pin.slice(8,12)}
+                                </code>
                               </td>
                               <td><span className={emp.status === 'PENDING' ? 'badge-pending' : emp.status === 'APPROVED' ? 'badge-approved' : 'badge-rejected'}>{emp.status}</span></td>
                               <td className="text-xs text-white/40">{new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>

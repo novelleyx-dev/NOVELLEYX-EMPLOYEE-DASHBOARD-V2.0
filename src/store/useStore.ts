@@ -184,6 +184,7 @@ export interface AdminNotification {
   title: string;
   message: string;
   type: 'TICKET' | 'SYSTEM' | 'URGENT';
+  relatedId?: string; // e.g. employeeId or ticketId
   read: boolean;
   createdAt: string;
 }
@@ -251,7 +252,7 @@ interface NovelleyXStore {
   updateTicketStatus: (id: string, status: SupportTicket['status']) => void;
 
   adminNotifications: AdminNotification[];
-  addAdminNotification: (title: string, message: string, type: AdminNotification['type']) => void;
+  addAdminNotification: (title: string, message: string, type: AdminNotification['type'], relatedId?: string) => void;
   markAdminNotificationRead: (id: string) => void;
 
   joinMeeting: (employeeId: string, meetingId: string) => void;
@@ -355,8 +356,17 @@ export const useStore = create<NovelleyXStore>()(
         // Add Admin Notification
         get().addAdminNotification(
           'New Registration',
-          `${newEmployee.name} (${newEmployee.email}) is awaiting approval.`,
-          'SYSTEM'
+          `${newEmployee.name} (${newEmployee.email}) is awaiting approval. PIN: ${pin}`,
+          'SYSTEM',
+          id
+        );
+
+        // Also send a Broadcast Message (System) so it shows up in Chat Feed
+        get().sendMessage(
+          'SYSTEM', 
+          'System Protocol', 
+          `🚨 NEW REGISTRATION: ${newEmployee.name} is awaiting approval. Secure Key (PIN) has been generated.`, 
+          true
         );
 
         return pin;
@@ -580,12 +590,13 @@ export const useStore = create<NovelleyXStore>()(
 
       // ── Admin Notifications ───────────────────────────────────────────────
       adminNotifications: [],
-      addAdminNotification: (title, message, type) => {
+      addAdminNotification: (title, message, type, relatedId) => {
         const notification: AdminNotification = {
           id: generateId(),
           title,
           message,
           type,
+          relatedId,
           read: false,
           createdAt: new Date().toISOString(),
         };
