@@ -34,7 +34,7 @@ import CalendarModule from '@/components/modules/CalendarModule';
 
 export default function DashboardLayout() {
   const router = useRouter();
-  const { session, setSession, employees, tasks, meetings, getSettings } = useStore();
+  const { _hasHydrated, session, setSession, employees, tasks, meetings, getSettings } = useStore();
   const [activeModule, setActiveModule] = useState<Module>('profile');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
@@ -85,11 +85,12 @@ export default function DashboardLayout() {
   }, [settings?.theme, settings?.customBackground]);
 
   useEffect(() => {
+    if (!mounted || !_hasHydrated) return;
     if (!session) { router.replace('/'); return; }
     if (session.type === 'admin') { router.replace('/admin'); }
-  }, [session, router]);
+  }, [session, router, mounted, _hasHydrated]);
 
-  if (!session || session.type !== 'employee' || !emp) return null;
+  if (!mounted || !_hasHydrated || !session || session.type !== 'employee' || !emp) return null;
 
   const openTasks = tasks.filter(t => t.assignedTo === emp.id && t.status === 'OPEN').length;
   const upcomingMeetings = meetings.filter(m => new Date(m.scheduledAt) > new Date() && (m.attendees.includes('all') || m.attendees.includes(emp.id))).length;

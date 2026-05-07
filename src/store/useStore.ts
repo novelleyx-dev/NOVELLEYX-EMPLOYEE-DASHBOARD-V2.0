@@ -265,6 +265,8 @@ interface NovelleyXStore {
   updateCompanyProgress: (progress: number) => void;
 
   updateEmployeeEvaluation: (id: string, score: number, remarks: string) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (val: boolean) => void;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -311,7 +313,7 @@ const buildPaystubs = (employeeId: string): PayStub[] => {
 const SEED_MESSAGES: Message[] = [];
 
 const DEFAULT_SETTINGS: EmployeeSettings = {
-  theme: 'cyber-dark',
+  theme: 'day',
   notificationsEnabled: true,
   notificationChannels: { email: true, push: true, sms: false, inApp: true },
   dndMode: { enabled: false, start: '22:00', end: '08:00' },
@@ -331,11 +333,14 @@ export const useStore = create<NovelleyXStore>()(
     (set, get) => ({
       session: null,
       setSession: (s) => set({ session: s }),
+      _hasHydrated: false,
+      setHasHydrated: (val) => set({ _hasHydrated: val }),
 
       // ── Employees ──────────────────────────────────────────────────────────
       employees: [],
 
       addEmployee: (emp) => {
+        if (!get()._hasHydrated) return ''; // Prevent adding before hydration
         const id = generateId();
         const pin = generate12DigitPin();
         const deptIndex = Math.floor(Math.random() * DEPARTMENTS.length);
@@ -344,7 +349,7 @@ export const useStore = create<NovelleyXStore>()(
           id, pin,
           department: emp.department || DEPARTMENTS[deptIndex],
           role: emp.role || ROLES[deptIndex],
-          status: 'APPROVED', // Bypassing Admin Approval as per request
+          status: 'APPROVED',
           createdAt: new Date().toISOString(),
           avatarSeed: emp.name.toLowerCase().replace(/\s/g, '-') + '-' + id,
           xp: 0,
@@ -354,7 +359,6 @@ export const useStore = create<NovelleyXStore>()(
           employees: [...state.employees, newEmployee] 
         }));
 
-        // Add Admin Notification
         get().addAdminNotification(
           'New Registration',
           `${newEmployee.name} (${newEmployee.email}) has joined. PIN: ${pin}`,
@@ -362,7 +366,6 @@ export const useStore = create<NovelleyXStore>()(
           id
         );
 
-        // Also send a Broadcast Message (System) so it shows up in Chat Feed
         get().sendMessage(
           'SYSTEM', 
           'System Protocol', 
@@ -419,6 +422,7 @@ export const useStore = create<NovelleyXStore>()(
       attendance: [],
 
       clockIn: (employeeId, location) => {
+        if (!get()._hasHydrated) return;
         const id = generateId();
         const now = new Date();
         const record: AttendanceRecord = { id, employeeId, clockIn: now.toISOString(), location };
@@ -641,8 +645,11 @@ export const useStore = create<NovelleyXStore>()(
       },
     }),
     {
-      name: 'novelleyx-store-v5',
+      name: 'novelleyx-store-v6',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
       partialize: (state) => ({
         employees: state.employees,
         attendance: state.attendance,

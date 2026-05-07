@@ -35,10 +35,12 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 export default function AdminDashboard() {
   const router = useRouter();
   const { 
-    session, setSession, employees, updateEmployeeStatus, deleteEmployee, tasks, meetings, 
-    getSettings, updateEmployeeRole, attendance, adminNotifications, 
-    markAdminNotificationRead, monthlyProductivity, updateMonthlyProductivity,
-    companyProgress, updateCompanyProgress, updateEmployeeEvaluation 
+    _hasHydrated, session, setSession, employees, updateEmployeeStatus, deleteEmployee, 
+    tasks, meetings, getSettings, updateEmployeeRole, attendance, 
+    adminNotifications, markAdminNotificationRead, monthlyProductivity, 
+    updateMonthlyProductivity, companyProgress, updateCompanyProgress, 
+    updateEmployeeEvaluation, scheduleMeeting, assignTask, updateTaskStatus, 
+    extendTaskDeadline, sendFile, updateSettings, addEmployee
   } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
@@ -52,7 +54,7 @@ export default function AdminDashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEmp, setNewEmp] = useState({ name: '', email: '', role: 'employee' as Designation });
   const [manualPin, setManualPin] = useState<string | null>(null);
-  const { addEmployee } = useStore();
+
 
   const handleManualAdd = () => {
     if (!newEmp.name || !newEmp.email) return;
@@ -70,15 +72,13 @@ export default function AdminDashboard() {
     }
 
     // Cross-tab Synchronization
-    const sync = (e: StorageEvent) => {
-      if (e.key === 'novelleyx-store-v5' || e.key === 'novelleyx-store-v6') {
-        // Use rehydrate to update state without a hard reload
-        // This makes the 'notified' experience much smoother and real-time
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'novelleyx-store-v6') {
         useStore.persist.rehydrate();
       }
     };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const settings = getSettings('admin');
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       const vars: any = {
         'cyber-dark': { '--bg': '#030712', '--accent': '#22d3ee', '--accent2': '#a855f7', '--card-bg': 'rgba(255,255,255,0.04)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
         'night': { '--bg': '#0a0e1a', '--accent': '#818cf8', '--accent2': '#a78bfa', '--card-bg': 'rgba(129,140,248,0.05)', '--card-border': 'rgba(129,140,248,0.12)', '--text': '#e2e8f0' },
-        'day': { '--bg': '#1e293b', '--accent': '#60a5fa', '--accent2': '#3b82f6', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
+        'day': { '--bg': '#1B2631', '--accent': '#5DADE2', '--accent2': '#AED6F1', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#E1E8ED' },
         'forest': { '--bg': '#0d1f0f', '--accent': '#4ade80', '--accent2': '#86efac', '--card-bg': 'rgba(74,222,128,0.04)', '--card-border': 'rgba(74,222,128,0.12)', '--text': '#ecfdf5' },
         'ocean': { '--bg': '#050e1a', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
         'zen': { '--bg': '#1a1510', '--accent': '#d97706', '--accent2': '#92400e', '--card-bg': 'rgba(217,119,6,0.06)', '--card-border': 'rgba(217,119,6,0.15)', '--text': '#fef3c7' },
@@ -112,11 +112,13 @@ export default function AdminDashboard() {
   }, [settings?.theme, settings?.customBackground]);
 
   useEffect(() => {
-    if (!session) { router.replace('/'); return; }
-    if (session.type !== 'admin') { router.replace('/dashboard'); }
-  }, [session, router]);
+    if (!mounted || !_hasHydrated) return;
+    if (!session || session.type !== 'admin') {
+      router.replace('/');
+    }
+  }, [session, router, mounted, _hasHydrated]);
 
-  if (!mounted || !session || session.type !== 'admin') return null;
+  if (!mounted || !_hasHydrated || !session || session.type !== 'admin') return null;
 
   const pending = employees.filter(e => e.status === 'PENDING').length;
   const approved = employees.filter(e => e.status === 'APPROVED').length;
@@ -193,12 +195,12 @@ export default function AdminDashboard() {
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <img 
           src="/admin-bg.jpg" 
-          className="w-full h-full object-cover opacity-30 mix-blend-luminosity scale-105"
+          className="w-full h-full object-cover opacity-20 mix-blend-multiply scale-105"
           alt="background"
-          style={{ filter: 'contrast(1.2) brightness(0.8)' }}
+          style={{ filter: 'contrast(1.1) brightness(0.5)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90" />
-        <div className="absolute inset-0 bg-[#03050a]/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/95" />
+        <div className="absolute inset-0 bg-[#0a111a]/80" />
       </div>
       <div className="admin-grid-overlay opacity-10 pointer-events-none" />
 
@@ -381,10 +383,10 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard icon={Users} label="Total Workforce" value={employees.length} color="34,211,238" chartData={monthlyProductivity} />
+                  <StatCard icon={Users} label="Total Workforce" value={employees.length} color="93,173,226" chartData={monthlyProductivity} />
                   <StatCard icon={Activity} label="Currently Live" value={liveCount} color="132,204,22" sub={`${Math.round((liveCount / (approved || 1)) * 100)}% Engagement`} chartData={[10, 20, 15, 30, 25, 40, 20]} />
-                  <StatCard icon={Clock} label="Today's Hours" value={`${Math.floor(attendance.filter(a => new Date(a.clockIn).toDateString() === new Date().toDateString()).reduce((s, a) => s + (a.shiftDuration || 0), 0) / 60)}h`} color="245,158,11" chartData={[20, 40, 30, 50, 40, 60, 70]} />
-                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
+                  <StatCard icon={Clock} label="Today's Hours" value={`${Math.floor(attendance.filter(a => new Date(a.clockIn).toDateString() === new Date().toDateString()).reduce((s, a) => s + (a.shiftDuration || 0), 0) / 60)}h`} color="91,192,222" chartData={[20, 40, 30, 50, 40, 60, 70]} />
+                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="129,140,248" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
                 </div>
 
                 {/* System Metrics Management */}

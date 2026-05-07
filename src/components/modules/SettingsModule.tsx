@@ -29,7 +29,7 @@ function SparklesIcon({ size }: { size: number }) { return <Zap size={size} /> }
 const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
   'cyber-dark': { '--bg': '#030712', '--accent': '#22d3ee', '--accent2': '#a855f7', '--card-bg': 'rgba(255,255,255,0.04)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
   'night': { '--bg': '#0a0e1a', '--accent': '#818cf8', '--accent2': '#a78bfa', '--card-bg': 'rgba(129,140,248,0.05)', '--card-border': 'rgba(129,140,248,0.12)', '--text': '#e2e8f0' },
-  'day': { '--bg': '#1e293b', '--accent': '#60a5fa', '--accent2': '#3b82f6', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
+  'day': { '--bg': '#1B2631', '--accent': '#5DADE2', '--accent2': '#AED6F1', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#E1E8ED' },
   'forest': { '--bg': '#0d1f0f', '--accent': '#4ade80', '--accent2': '#86efac', '--card-bg': 'rgba(74,222,128,0.04)', '--card-border': 'rgba(74,222,128,0.12)', '--text': '#ecfdf5' },
   'ocean': { '--bg': '#050e1a', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
   'zen': { '--bg': '#1a1510', '--accent': '#d97706', '--accent2': '#92400e', '--card-bg': 'rgba(217,119,6,0.06)', '--card-border': 'rgba(217,119,6,0.15)', '--text': '#fef3c7' },
@@ -366,36 +366,6 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                     </div>
                   </div>
 
-                  <div className="glass-card p-6">
-                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Smartphone size={14} className="text-cyan-400" /> Active Sessions</h3>
-                    <div className="space-y-4">
-                      {[
-                        { device: 'Windows 11 · Chrome', location: 'Mumbai, India', ip: '192.168.1.1', status: 'Current Session', icon: Laptop },
-                        { device: 'iPhone 15 Pro · Safari', location: 'Delhi, India', ip: '10.0.0.15', status: '3 hours ago', icon: PhoneCall },
-                      ].map((session, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-white/3 border border-white/5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/60">
-                              <session.icon size={20} />
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-white">{session.device}</p>
-                              <p className="text-[10px] text-white/30">{session.location} · {session.ip}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-[10px] font-bold ${session.status === 'Current Session' ? 'text-lime-400' : 'text-white/30'}`}>{session.status}</span>
-                            {session.status !== 'Current Session' && (
-                              <button className="block text-[10px] text-red-400 hover:underline mt-1">Revoke Access</button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <button className="w-full py-3 rounded-xl border border-red-500/30 bg-red-500/5 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-all">
-                        Terminate All Other Sessions
-                      </button>
-                    </div>
-                  </div>
                 </div>
               )}
 

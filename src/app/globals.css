@@ -17,13 +17,14 @@
   --cyber-dark: #030712;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
-  /* Theme vars (overridden by SettingsModule) */
-  --bg: #030712;
-  --accent: #22d3ee;
-  --accent2: #a855f7;
-  --card-bg: rgba(255,255,255,0.04);
-  --card-border: rgba(255,255,255,0.08);
-  --text: #f1f5f9;
+  
+  /* NEW: Clay Blue Theme (Default) */
+  --bg: #1B2631;
+  --accent: #5DADE2;
+  --accent2: #AED6F1;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text: #E1E8ED;
 }
 
 /* Universal hover micro-interaction */
@@ -78,9 +79,9 @@ body {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(217, 70, 239, 0.03) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(93, 173, 226, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(174, 214, 241, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(36, 52, 71, 0.05) 0%, transparent 70%);
   animation: meshShift 12s ease-in-out infinite alternate;
 }
 
@@ -107,7 +108,7 @@ body {
   height: 200%;
   background: radial-gradient(circle at 30% 40%, var(--accent) 0%, transparent 40%),
               radial-gradient(circle at 70% 60%, var(--accent2) 0%, transparent 40%);
-  opacity: 0.08;
+  opacity: 0.12;
   animation: admin-bg-pulse 15s ease-in-out infinite alternate;
 }
 

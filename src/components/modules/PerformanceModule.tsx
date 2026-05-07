@@ -82,7 +82,7 @@ export default function PerformanceModule({ employeeId }: Props) {
         <body>
           <div class="cert-container">
             <div class="border-inner">
-              <img src="https://i.ibb.co/L8mNf9G/novelleyx-logo.png" class="logo" />
+              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02MCAxMEwxNSAyNXY0NWMwIDI1IDIwIDQ1IDQ1IDUwczQ1LTI1IDQ1LTUwVjI1TDYwIDEweiIgZmlsbD0iIzAzMDcxMiIvPgo8cGF0aCBkPSJNNjAgMjBMMjUgMzF2MzljMCAyMCAxNiAzOCA0NSA0NXM0NS0yNSA0NS00NVYzMUw2MCAyMHoiIGZpbGw9InVybCgjZ3JhZDEpIi8+Cjx0ZXh0IHg9IjYwIiB5PSI3NSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5YPC90ZXh0Pgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkMSIgeDE9IjYwIiB5MT0iMjAiIHgyPSI2MCIgeTI9IjEwMCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjMjJEM0VFIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0E4NTVGNyIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjwvc3ZnPg==" class="logo" />
               <div class="title">Certificate</div>
               <div class="subtitle">Of Achievement</div>
               <p>This is to certify that</p>
