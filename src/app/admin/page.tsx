@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Users, AlertCircle, LogOut, Search, CheckCircle2, XCircle,
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
-  Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings, Bell
+  Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings, Bell,
+  ExternalLink, Github, Globe, Instagram, Facebook, Youtube, Phone, FileBadge
 } from 'lucide-react';
 import { useStore, Employee, Designation } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';
@@ -38,6 +39,16 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hasSeenWelcome = sessionStorage.getItem('adminWelcome');
+    if (!hasSeenWelcome) {
+      setWelcomeOpen(true);
+      sessionStorage.setItem('adminWelcome', 'true');
+    }
+  }, []);
 
   const settings = getSettings('admin');
 
@@ -54,15 +65,20 @@ export default function AdminDashboard() {
       const currentVars = vars[settings.theme];
       if (currentVars) {
         Object.entries(currentVars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v as string));
-        // We set document background but with slightly more transparency if it's admin
-        document.body.style.background = currentVars['--bg'];
         document.body.style.color = currentVars['--text'];
-        // Update root variables for global components
-        document.documentElement.style.setProperty('--bg', currentVars['--bg']);
-        document.documentElement.style.setProperty('--accent', currentVars['--accent']);
+        
+        if (settings.customBackground) {
+          document.body.style.backgroundImage = `url(${settings.customBackground})`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        } else {
+          document.body.style.backgroundImage = 'none';
+          document.body.style.background = currentVars['--bg'];
+        }
       }
     }
-  }, [settings?.theme]);
+  }, [settings?.theme, settings?.customBackground]);
 
   useEffect(() => {
     if (!session) { router.replace('/'); return; }
@@ -94,16 +110,43 @@ export default function AdminDashboard() {
   const liveEmployees = employees.filter(e => attendance.some((a: any) => a.employeeId === e.id && !a.clockOut));
   const liveCount = liveEmployees.length;
 
-  const StatCard = ({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: number; color: string; sub?: string }) => (
-    <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-5 flex items-center gap-4 cursor-default">
+  const roleSegregation = employees.reduce((acc, emp) => {
+    acc[emp.role] = (acc[emp.role] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const deptSegregation = employees.reduce((acc, emp) => {
+    acc[emp.department] = (acc[emp.department] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const MiniChart = ({ color, data }: { color: string; data: number[] }) => (
+    <div className="flex items-end gap-0.5 h-6 w-16">
+      {data.map((v, i) => (
+        <motion.div
+          key={i}
+          initial={{ height: 0 }}
+          animate={{ height: `${v}%` }}
+          className="flex-1 rounded-t-[1px]"
+          style={{ background: `rgba(${color}, 0.5)` }}
+        />
+      ))}
+    </div>
+  );
+
+  const StatCard = ({ icon: Icon, label, value, color, sub, chartData }: { icon: any; label: string; value: number | string; color: string; sub?: string; chartData?: number[] }) => (
+    <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-5 flex items-center gap-4 cursor-default group">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ background: `rgba(${color}, 0.1)`, border: `1px solid rgba(${color}, 0.3)` }}>
         <Icon size={22} style={{ color: `rgb(${color})` }} />
       </div>
-      <div>
+      <div className="flex-1 min-w-0">
         <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-black text-white mt-0.5">{value}</p>
-        {sub && <p className="text-xs text-white/30">{sub}</p>}
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-black text-white mt-0.5">{value}</p>
+          {chartData && <MiniChart color={color} data={chartData} />}
+        </div>
+        {sub && <p className="text-xs text-white/30 truncate">{sub}</p>}
       </div>
     </motion.div>
   );
@@ -237,10 +280,50 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard icon={Users} label="Total Employees" value={employees.length} color="34,211,238" />
-                  <StatCard icon={AlertCircle} label="Pending Approval" value={pending} color="245,158,11" />
-                  <StatCard icon={UserCheck} label="Approved" value={approved} color="132,204,22" />
-                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} />
+                  <StatCard icon={Users} label="Total Employees" value={employees.length} color="34,211,238" chartData={monthlyProductivity} />
+                  <StatCard icon={AlertCircle} label="Pending Approval" value={pending} color="245,158,11" chartData={[10, 20, 15, 30, 25, 40, 20]} />
+                  <StatCard icon={Activity} label="Company Progress" value={`${companyProgress}%`} color="132,204,22" chartData={[companyProgress, companyProgress, companyProgress, companyProgress, companyProgress, companyProgress, companyProgress]} />
+                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
+                </div>
+
+                {/* System Metrics Management */}
+                <div className="glass-card p-6 border-fuchsia-500/10">
+                  <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Settings size={16} className="text-fuchsia-400" /> System Metrics Management</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Monthly Productivity (Last 7 Months)</label>
+                      <div className="flex gap-2">
+                        {monthlyProductivity.map((val, i) => (
+                          <input 
+                            key={i}
+                            type="number" 
+                            value={val}
+                            onChange={(e) => {
+                              const newData = [...monthlyProductivity];
+                              newData[i] = parseInt(e.target.value) || 0;
+                              updateMonthlyProductivity(newData);
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 text-center text-white text-xs font-bold focus:border-fuchsia-400/50 outline-none transition-all"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Company Progress (%)</label>
+                      <input 
+                        type="range" 
+                        min="0" max="100" 
+                        value={companyProgress}
+                        onChange={(e) => updateCompanyProgress(parseInt(e.target.value))}
+                        className="w-full accent-fuchsia-500 h-2 bg-white/5 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex justify-between mt-2 text-[10px] font-mono text-white/30">
+                        <span>0%</span>
+                        <span className="text-fuchsia-400 font-bold">{companyProgress}%</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Workforce Attendance Analytics */}
@@ -316,6 +399,37 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
+                {/* Segregations Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="glass-card p-6">
+                    <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                      <ShieldCheck size={16} className="text-amber-400" /> Role Segregation
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {Object.entries(roleSegregation).map(([role, count]) => (
+                        <div key={role} className="p-3 rounded-xl bg-white/2 border border-white/5 text-center">
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mb-1 truncate">{role}</p>
+                          <p className="text-xl font-black text-white">{count}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="glass-card p-6">
+                    <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                      <Users size={16} className="text-cyan-400" /> Department Distribution
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {Object.entries(deptSegregation).map(([dept, count]) => (
+                        <div key={dept} className="p-3 rounded-xl bg-white/2 border border-white/5 text-center">
+                          <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mb-1 truncate">{dept || 'Unassigned'}</p>
+                          <p className="text-xl font-black text-white">{count}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {pending > 0 && (
                   <div className="glass-card p-5">
                     <h3 className="font-bold text-amber-400 text-sm mb-3 flex items-center gap-2"><AlertCircle size={14} /> Pending Approvals</h3>
@@ -381,7 +495,72 @@ export default function AdminDashboard() {
                                   ) : (
                                     <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-9 h-9 rounded-lg border border-white/10" alt={emp.name} />
                                   )}
-                                  <div><p className="font-semibold text-white text-sm">{emp.name}</p><p className="text-xs text-white/40">{emp.email}</p></div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-semibold text-white text-sm">{emp.name}</p>
+                                      {(emp.socials?.linkedin || emp.socials?.github || emp.socials?.twitter || emp.socials?.portfolio) && (
+                                        <button 
+                                          onClick={() => setExpandedEmployee(expandedEmployee === emp.id ? null : emp.id)}
+                                          className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                                        >
+                                          <ExternalLink size={12} />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-white/40">{emp.email}</p>
+                                    
+                                    <AnimatePresence>
+                                      {expandedEmployee === emp.id && (
+                                        <motion.div 
+                                          initial={{ height: 0, opacity: 0 }} 
+                                          animate={{ height: 'auto', opacity: 1 }} 
+                                          exit={{ height: 0, opacity: 0 }}
+                                          className="overflow-hidden mt-2"
+                                        >
+                                          <div className="flex flex-wrap gap-3 py-2 border-t border-white/5">
+                                            {emp.socials?.linkedin && <a href={emp.socials.linkedin} target="_blank" rel="noreferrer" title="LinkedIn" className="text-white/40 hover:text-cyan-400 transition-all"><Users size={14} /></a>}
+                                            {emp.socials?.github && <a href={`https://github.com/${emp.socials.github}`} target="_blank" rel="noreferrer" title="GitHub" className="text-white/40 hover:text-white transition-all"><Github size={14} /></a>}
+                                            {emp.socials?.twitter && <a href={`https://twitter.com/${emp.socials.twitter.replace('@', '')}`} target="_blank" rel="noreferrer" title="Twitter" className="text-white/40 hover:text-blue-400 transition-all"><MessageSquare size={14} /></a>}
+                                            {emp.socials?.whatsapp && <a href={`https://wa.me/${emp.socials.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" title="WhatsApp" className="text-white/40 hover:text-green-400 transition-all"><Phone size={14} /></a>}
+                                            {emp.socials?.instagram && <a href={`https://instagram.com/${emp.socials.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" title="Instagram" className="text-white/40 hover:text-pink-400 transition-all"><Instagram size={14} /></a>}
+                                            {emp.socials?.youtube && <a href={emp.socials.youtube} target="_blank" rel="noreferrer" title="YouTube" className="text-white/40 hover:text-red-500 transition-all"><Youtube size={14} /></a>}
+                                            {emp.socials?.facebook && <a href={emp.socials.facebook} target="_blank" rel="noreferrer" title="Facebook" className="text-white/40 hover:text-blue-600 transition-all"><Facebook size={14} /></a>}
+                                            {emp.socials?.portfolio && <a href={emp.socials.portfolio} target="_blank" rel="noreferrer" title="Portfolio" className="text-white/40 hover:text-amber-400 transition-all"><Globe size={14} /></a>}
+                                          </div>
+
+                                          <div className="mt-4 p-4 rounded-xl bg-white/2 border border-white/5">
+                                            <div className="flex items-center justify-between mb-4">
+                                              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Internal Evaluation</p>
+                                              <span className="text-[10px] font-mono text-white/20">Last Updated: {emp.evaluation?.lastUpdated ? new Date(emp.evaluation.lastUpdated).toLocaleDateString() : 'Never'}</span>
+                                            </div>
+                                            <div className="space-y-4">
+                                              <div>
+                                                <div className="flex justify-between text-xs mb-1">
+                                                  <span className="text-white/60">Performance Score</span>
+                                                  <span className="text-fuchsia-400 font-bold">{emp.evaluation?.score || 0}%</span>
+                                                </div>
+                                                <input 
+                                                  type="range" min="0" max="100" 
+                                                  value={emp.evaluation?.score || 0}
+                                                  onChange={(e) => updateEmployeeEvaluation(emp.id, parseInt(e.target.value), emp.evaluation?.remarks || '')}
+                                                  className="w-full h-1.5 accent-fuchsia-500 bg-white/5 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                              </div>
+                                              <div>
+                                                <p className="text-[10px] font-bold text-white/40 uppercase mb-2">Director&apos;s Remarks</p>
+                                                <textarea 
+                                                  placeholder="Add internal notes about employee performance..."
+                                                  className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-xs text-white outline-none focus:border-fuchsia-400/50 min-h-[60px]"
+                                                  value={emp.evaluation?.remarks || ''}
+                                                  onChange={(e) => updateEmployeeEvaluation(emp.id, emp.evaluation?.score || 0, e.target.value)}
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
+                                  </div>
                                 </div>
                               </td>
                               <td>
@@ -453,6 +632,37 @@ export default function AdminDashboard() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Welcome Message Overlay */}
+      <AnimatePresence>
+        {welcomeOpen && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setWelcomeOpen(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg glass-card p-10 text-center border-fuchsia-500/30"
+            >
+              <div className="w-20 h-20 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(217,70,239,0.2)]">
+                <ShieldCheck size={40} className="text-fuchsia-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white mb-2 tracking-tight">System Initialization</h2>
+              <p className="text-fuchsia-400 font-mono text-sm mb-6 uppercase tracking-widest">Access Granted: Abhinav Patta</p>
+              <p className="text-white/60 text-sm leading-relaxed mb-8">
+                Welcome back to the NovelleyX Command Center. All systems are operational. 
+                Your digital ecosystem is synchronized and ready for management.
+              </p>
+              <button 
+                onClick={() => setWelcomeOpen(false)}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-black uppercase tracking-widest hover:shadow-[0_0_20px_rgba(217,70,239,0.4)] transition-all"
+              >
+                Enter System
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

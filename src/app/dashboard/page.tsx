@@ -37,6 +37,15 @@ export default function DashboardLayout() {
   const { session, setSession, employees, tasks, meetings, getSettings } = useStore();
   const [activeModule, setActiveModule] = useState<Module>('profile');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSeenWelcome = sessionStorage.getItem('empWelcome');
+    if (!hasSeenWelcome) {
+      setWelcomeOpen(true);
+      sessionStorage.setItem('empWelcome', 'true');
+    }
+  }, []);
 
   const emp = session?.type === 'employee' ? employees.find(e => e.id === session.employeeId) : null;
   const settings = emp ? getSettings(emp.id) : null;
@@ -60,11 +69,20 @@ export default function DashboardLayout() {
       const currentVars = vars[settings.theme];
       if (currentVars) {
         Object.entries(currentVars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v as string));
-        document.body.style.background = currentVars['--bg'];
+        
+        if (settings.customBackground) {
+          document.body.style.backgroundImage = `url(${settings.customBackground})`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        } else {
+          document.body.style.backgroundImage = 'none';
+          document.body.style.background = currentVars['--bg'];
+        }
         document.body.style.color = currentVars['--text'];
       }
     }
-  }, [settings?.theme]);
+  }, [settings?.theme, settings?.customBackground]);
 
   useEffect(() => {
     if (!session) { router.replace('/'); return; }
@@ -205,6 +223,37 @@ export default function DashboardLayout() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Welcome Message Overlay */}
+      <AnimatePresence>
+        {welcomeOpen && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setWelcomeOpen(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg glass-card p-10 text-center border-cyan-500/30"
+            >
+              <div className="w-20 h-20 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                <Shield size={40} className="text-cyan-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome, {emp.name}</h2>
+              <p className="text-cyan-400 font-mono text-sm mb-6 uppercase tracking-widest">{emp.role} · {emp.department}</p>
+              <p className="text-white/60 text-sm leading-relaxed mb-8">
+                Your personal NovelleyX workspace is active. 
+                Track your shifts, manage tasks, and connect with your team in real-time.
+              </p>
+              <button 
+                onClick={() => setWelcomeOpen(false)}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black uppercase tracking-widest hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all"
+              >
+                Access Workspace
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

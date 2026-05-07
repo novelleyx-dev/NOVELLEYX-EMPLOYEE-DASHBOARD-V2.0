@@ -5,8 +5,8 @@
  * XP bar, level, badges with Framer Motion hover effects
  */
 
-import { motion } from 'framer-motion';
-import { Trophy, Star, Zap, Shield, Clock, Bug, Flame, Target, Award, TrendingUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, Star, Zap, Shield, Clock, Bug, Flame, Target, Award, TrendingUp, Printer, Download, Layout, MessageCircle, Globe } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
 interface Props { employeeId: string; }
@@ -32,7 +32,7 @@ function getLevel(xp: number) {
 }
 
 export default function PerformanceModule({ employeeId }: Props) {
-  const employees = useStore((s) => s.employees);
+  const { employees, customBadges, companyProgress } = useStore();
   const emp = employees.find((e) => e.id === employeeId);
   if (!emp) return null;
 
@@ -56,12 +56,78 @@ export default function PerformanceModule({ employeeId }: Props) {
     border: 'rgba(34,211,238,0.3)',
     desc: b.desc
   }))];
+  const generateCertificate = (badgeName: string) => {
+    const certWindow = window.open('', '_blank');
+    if (!certWindow) return;
+
+    const certHtml = `
+      <html>
+        <head>
+          <title>Certificate of Achievement - ${badgeName}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700&display=swap');
+            body { margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; background: #0a0a0a; font-family: 'Inter', sans-serif; }
+            .cert-container { width: 800px; height: 500px; padding: 40px; border: 15px solid #1a1a1a; background: white; position: relative; overflow: hidden; text-align: center; margin: auto; }
+            .border-inner { border: 2px solid #c5a059; height: 100%; width: 100%; box-sizing: border-box; padding: 30px; display: flex; flex-direction: column; justify-content: center; }
+            .logo { width: 60px; margin: 0 auto 20px; }
+            .title { font-family: 'Cinzel', serif; font-size: 36px; color: #1a1a1a; margin: 0; }
+            .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 4px; }
+            .name { font-size: 28px; font-weight: 700; color: #1a1a1a; border-bottom: 2px solid #1a1a1a; display: inline-block; padding: 0 30px 5px; margin-bottom: 15px; }
+            .achievement { font-size: 16px; color: #444; line-height: 1.5; margin-bottom: 30px; }
+            .footer { display: flex; justify-content: space-around; margin-top: 30px; }
+            .sign { border-top: 1px solid #1a1a1a; padding-top: 8px; width: 180px; }
+            .sign-text { font-family: 'Cinzel', serif; font-size: 12px; color: #1a1a1a; }
+            p { margin: 5px 0; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="cert-container">
+            <div class="border-inner">
+              <img src="https://i.ibb.co/L8mNf9G/novelleyx-logo.png" class="logo" />
+              <div class="title">Certificate</div>
+              <div class="subtitle">Of Achievement</div>
+              <p>This is to certify that</p>
+              <div class="name">${emp.name}</div>
+              <p class="achievement">
+                Has successfully earned the <strong>${badgeName} Badge</strong> <br/>
+                for outstanding contribution and professional excellence within the NovelleyX ecosystem.
+              </p>
+              <div class="footer">
+                <div class="sign">
+                  <div class="sign-text">Abhinav Patta</div>
+                  <div style="font-size: 9px; color: #888;">Founder & Director</div>
+                </div>
+                <div class="sign">
+                  <div class="sign-text">${new Date().toLocaleDateString()}</div>
+                  <div style="font-size: 9px; color: #888;">Date of Issuance</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <script>window.print();</script>
+        </body>
+      </html>
+    `;
+    certWindow.document.write(certHtml);
+    certWindow.document.close();
+  };
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-black text-white">Performance Engine</h2>
-        <p className="text-white/40 text-sm mt-1">Your XP progression, badges earned, and leaderboard ranking.</p>
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-white">Performance Engine</h2>
+          <p className="text-white/40 text-sm mt-1">Your XP progression, badges earned, and internal evaluations.</p>
+        </div>
+        <div className="flex gap-3">
+          <div className="glass-card px-4 py-2 flex items-center gap-3 border-amber-400/20">
+            <Globe size={16} className="text-amber-400" />
+            <div>
+              <p className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Company Progress</p>
+              <p className="text-sm font-black text-white">{companyProgress}%</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -166,13 +232,64 @@ export default function PerformanceModule({ employeeId }: Props) {
                       <Icon size={24} style={{ color: earned ? color : '#444' }} />
                     </div>
                     <p className="text-xs font-bold" style={{ color: color }}>{id}</p>
-                    <p className="text-xs text-white/30 mt-0.5 leading-tight">{desc}</p>
+                    <p className="text-[10px] text-white/30 mt-0.5 leading-tight">{desc}</p>
+                    
+                    {earned && (
+                      <button 
+                        onClick={() => generateCertificate(id)}
+                        className="mt-3 w-full py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white/40 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Printer size={10} /> Certificate
+                      </button>
+                    )}
                   </motion.div>
                 );
               })}
             </div>
             )}
           </motion.div>
+
+          {/* ── Internal Evaluation ─────────────────────────────────────── */}
+          {emp.evaluation && (
+            <motion.div 
+              className="glass-card p-6 border-fuchsia-500/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-white flex items-center gap-2">
+                  <Shield size={16} className="text-fuchsia-400" /> Internal Evaluation
+                </h3>
+                <span className="text-[10px] font-mono text-white/30">Updated: {new Date(emp.evaluation.lastUpdated).toLocaleDateString()}</span>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-8 items-center">
+                <div className="relative w-24 h-24 flex-shrink-0">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-fuchsia-500" 
+                      strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * emp.evaluation.score) / 100} />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl font-black text-white">{emp.evaluation.score}%</span>
+                    <span className="text-[8px] text-white/40 uppercase font-bold">Score</span>
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <div className="p-4 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/10">
+                    <p className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <MessageCircle size={10} /> Director&apos;s Remarks
+                    </p>
+                    <p className="text-sm text-white/70 italic leading-relaxed">
+                      &ldquo;{emp.evaluation.remarks}&rdquo;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* ── Leaderboard ──────────────────────────────────────────────── */}

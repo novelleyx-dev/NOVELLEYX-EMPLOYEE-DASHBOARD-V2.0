@@ -29,6 +29,21 @@ export interface Employee {
   emergencyContact?: { name: string; relation: string; phone: string };
   xp: number;
   badges: string[];
+  socials?: {
+    linkedin?: string;
+    github?: string;
+    twitter?: string;
+    portfolio?: string;
+    whatsapp?: string;
+    instagram?: string;
+    youtube?: string;
+    facebook?: string;
+  };
+  evaluation?: {
+    score: number; // 0-100
+    remarks: string;
+    lastUpdated: string;
+  };
 }
 
 export interface AttendanceRecord {
@@ -151,6 +166,7 @@ export interface EmployeeSettings {
   biometrics: boolean;
   activityVisibility: boolean;
   linkedEmail?: string;
+  customBackground?: string;
 }
 
 export interface SupportTicket {
@@ -206,6 +222,7 @@ interface NovelleyXStore {
   seedPaystubs: (employeeId: string) => void;
   updateEmployeeProfile: (id: string, name: string, photo?: string) => void;
   updateEmployeeRole: (id: string, role: Designation) => void;
+  updateEmployeeSocials: (id: string, socials: Employee['socials']) => void;
 
   tasks: Task[];
   assignTask: (task: Omit<Task, 'id' | 'assignedAt' | 'status'>) => string;
@@ -236,6 +253,16 @@ interface NovelleyXStore {
   adminNotifications: AdminNotification[];
   addAdminNotification: (title: string, message: string, type: AdminNotification['type']) => void;
   markAdminNotificationRead: (id: string) => void;
+
+  joinMeeting: (employeeId: string, meetingId: string) => void;
+
+  monthlyProductivity: number[]; // 7 months of data
+  updateMonthlyProductivity: (data: number[]) => void;
+  
+  companyProgress: number; // 0-100
+  updateCompanyProgress: (progress: number) => void;
+
+  updateEmployeeEvaluation: (id: string, score: number, remarks: string) => void;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -248,6 +275,24 @@ const generate12DigitPin = (): string => {
 
 const generateId = (): string =>
   Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+
+const awardXP = (set: any, id: string, amount: number) => {
+  set((state: any) => ({
+    employees: state.employees.map((e: any) =>
+      e.id === id ? { ...e, xp: e.xp + amount } : e
+    )
+  }));
+};
+
+const awardBadge = (set: any, id: string, badge: string) => {
+  set((state: any) => ({
+    employees: state.employees.map((e: any) =>
+      e.id === id && !e.badges.includes(badge)
+        ? { ...e, badges: [...e.badges, badge] }
+        : e
+    )
+  }));
+};
 
 const DEPARTMENTS = ['Engineering', 'Design', 'Marketing', 'Operations', 'Finance', 'HR', 'Executive'];
 const ROLES: Designation[] = ['employee', 'fresher', 'intern', 'Team leader', 'HR', 'founding piller'];
@@ -273,7 +318,8 @@ const DEFAULT_SETTINGS: EmployeeSettings = {
   integrations: { slack: false, teams: false, github: false, figma: false, notion: false },
   twoFactor: true,
   biometrics: false,
-  activityVisibility: true
+  activityVisibility: true,
+  customBackground: ''
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -332,39 +378,39 @@ export const useStore = create<NovelleyXStore>()(
         }));
       },
 
+      updateEmployeeSocials: (id, socials) => {
+        set((state) => ({
+          employees: state.employees.map((e) => e.id === id ? { ...e, socials } : e)
+        }));
+      },
+
       // ── Attendance ──────────────────────────────────────────────────────────
       attendance: [],
 
       clockIn: (employeeId, location) => {
-        const record: AttendanceRecord = { id: generateId(), employeeId, clockIn: new Date().toISOString(), location };
+        const id = generateId();
+        const now = new Date();
+        const record: AttendanceRecord = { id, employeeId, clockIn: now.toISOString(), location };
         set((state) => ({ attendance: [...state.attendance, record] }));
-        const isEarlyBird = new Date().getHours() < 9;
-        set((state) => ({
-          employees: state.employees.map((e) => {
-            if (e.id !== employeeId) return e;
-            const newXp = e.xp + 50;
-            const newBadges = [...e.badges];
-            if (isEarlyBird && !newBadges.includes('Early Bird')) newBadges.push('Early Bird');
-            if (!newBadges.includes('Clockwork')) newBadges.push('Clockwork');
-            return { ...e, xp: newXp, badges: newBadges };
-          }),
-        }));
+        
+        awardXP(set, employeeId, 50);
+        if (now.getHours() < 9) awardBadge(set, employeeId, 'Early Bird');
+        awardBadge(set, employeeId, 'Clockwork');
       },
 
       clockOut: (employeeId) => {
+        const now = new Date();
         set((state) => ({
           attendance: state.attendance.map((r) => {
             if (r.employeeId === employeeId && !r.clockOut) {
-              const clockOutTime = new Date().toISOString();
-              const duration = Math.round((new Date(clockOutTime).getTime() - new Date(r.clockIn).getTime()) / 60000);
+              const clockOutTime = now.toISOString();
+              const duration = Math.round((now.getTime() - new Date(r.clockIn).getTime()) / 60000);
               return { ...r, clockOut: clockOutTime, shiftDuration: duration };
             }
             return r;
           }),
         }));
-        set((state) => ({
-          employees: state.employees.map((e) => e.id === employeeId ? { ...e, xp: e.xp + 25 } : e),
-        }));
+        awardXP(set, employeeId, 25);
       },
 
       getActiveSession: (employeeId) => get().attendance.find((r) => r.employeeId === employeeId && !r.clockOut),
@@ -428,7 +474,18 @@ export const useStore = create<NovelleyXStore>()(
       },
 
       updateTaskStatus: (taskId, status) => {
+        const task = get().tasks.find(t => t.id === taskId);
+        if (!task) return;
         set((state) => ({ tasks: state.tasks.map((t) => t.id === taskId ? { ...t, status } : t) }));
+        
+        if (status === 'APPROVED') {
+          const xpGain = task.priority === 'HIGH' ? 200 : task.priority === 'MEDIUM' ? 150 : 100;
+          awardXP(set, task.assignedTo, xpGain);
+          
+          const approvedCount = get().tasks.filter(t => t.assignedTo === task.assignedTo && t.status === 'APPROVED').length;
+          if (approvedCount >= 5) awardBadge(set, task.assignedTo, 'Overachiever');
+          if (approvedCount >= 10) awardBadge(set, task.assignedTo, 'Mentor');
+        }
       },
 
       extendTaskDeadline: (taskId, newDeadline) => {
@@ -526,6 +583,29 @@ export const useStore = create<NovelleyXStore>()(
       },
       markAdminNotificationRead: (id) => {
         set((state) => ({ adminNotifications: state.adminNotifications.map(n => n.id === id ? { ...n, read: true } : n) }));
+      },
+
+      joinMeeting: (employeeId, meetingId) => {
+        set((state) => ({
+          employees: state.employees.map(e => e.id === employeeId ? { ...e, xp: e.xp + 30 } : e)
+        }));
+        get().addAdminNotification(
+          'Meeting Attendance',
+          `${get().employees.find(e => e.id === employeeId)?.name} joined a meeting.`,
+          'SYSTEM'
+        );
+      },
+
+      monthlyProductivity: [65, 59, 80, 81, 56, 55, 40],
+      updateMonthlyProductivity: (data) => set({ monthlyProductivity: data }),
+
+      companyProgress: 75,
+      updateCompanyProgress: (progress) => set({ companyProgress: progress }),
+
+      updateEmployeeEvaluation: (id, score, remarks) => {
+        set((state) => ({
+          employees: state.employees.map((e) => e.id === id ? { ...e, evaluation: { score, remarks, lastUpdated: new Date().toISOString() } } : e)
+        }));
       },
     }),
     {

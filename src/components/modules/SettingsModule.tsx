@@ -36,7 +36,7 @@ const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
 };
 
 export default function SettingsModule({ employeeId }: { employeeId: string }) {
-  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile, submitTicket } = useStore();
+  const { getSettings, updateSettings, employees, updateProfilePhoto, getEmployeeById, updateEmployeeProfile, submitTicket, updateEmployeeSocials } = useStore();
   const settings = getSettings(employeeId);
   const emp = getEmployeeById(employeeId);
 
@@ -44,6 +44,14 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
   const [saved, setSaved] = useState(false);
   const [name, setName] = useState(emp?.name || '');
   const [bio, setBio] = useState(settings.bio || '');
+  const [linkedin, setLinkedin] = useState(emp?.socials?.linkedin || '');
+  const [github, setGithub] = useState(emp?.socials?.github || '');
+  const [twitter, setTwitter] = useState(emp?.socials?.twitter || '');
+  const [portfolio, setPortfolio] = useState(emp?.socials?.portfolio || '');
+  const [whatsapp, setWhatsapp] = useState(emp?.socials?.whatsapp || '');
+  const [instagram, setInstagram] = useState(emp?.socials?.instagram || '');
+  const [youtube, setYoutube] = useState(emp?.socials?.youtube || '');
+  const [facebook, setFacebook] = useState(emp?.socials?.facebook || '');
   const [ticketType, setTicketType] = useState('Request Manager Access');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -62,15 +70,24 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
       const vars = THEME_VARS[settings.theme];
       if (vars) {
         Object.entries(vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
-        document.body.style.background = vars['--bg'];
-        document.body.style.color = vars['--text'];
+        if (settings.customBackground) {
+          document.body.style.backgroundImage = `url(${settings.customBackground})`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        } else {
+          document.body.style.backgroundImage = 'none';
+          document.body.style.background = vars['--bg'];
+        }
+        document.body.style.color = vars['text'];
       }
     }
-  }, [settings.theme]);
+  }, [settings.theme, settings.customBackground]);
 
   const handleSave = () => {
     updateSettings(employeeId, { bio });
     updateEmployeeProfile(employeeId, name);
+    updateEmployeeSocials(employeeId, { linkedin, github, twitter, portfolio, whatsapp, instagram, youtube, facebook });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -233,6 +250,92 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                         </div>
                       </div>
                     </div>
+
+                    <div className="mt-8 border-t border-white/5 pt-8">
+                      <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Globe size={14} className="text-cyan-400" /> Social Connectivity</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">LinkedIn URL</label>
+                          <input 
+                            type="url" 
+                            placeholder="https://linkedin.com/in/username" 
+                            value={linkedin}
+                            onChange={(e) => setLinkedin(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">GitHub Username</label>
+                          <input 
+                            type="text" 
+                            placeholder="github_handle" 
+                            value={github}
+                            onChange={(e) => setGithub(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Twitter / X handle</label>
+                          <input 
+                            type="text" 
+                            placeholder="@username" 
+                            value={twitter}
+                            onChange={(e) => setTwitter(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Portfolio Website</label>
+                          <input 
+                            type="url" 
+                            placeholder="https://yourwork.com" 
+                            value={portfolio}
+                            onChange={(e) => setPortfolio(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">WhatsApp Number</label>
+                          <input 
+                            type="tel" 
+                            placeholder="+91 00000 00000" 
+                            value={whatsapp}
+                            onChange={(e) => setWhatsapp(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Instagram Handle</label>
+                          <input 
+                            type="text" 
+                            placeholder="@username" 
+                            value={instagram}
+                            onChange={(e) => setInstagram(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">YouTube Channel</label>
+                          <input 
+                            type="url" 
+                            placeholder="https://youtube.com/@channel" 
+                            value={youtube}
+                            onChange={(e) => setYoutube(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2 block">Facebook Profile</label>
+                          <input 
+                            type="url" 
+                            placeholder="https://facebook.com/profile" 
+                            value={facebook}
+                            onChange={(e) => setFacebook(e.target.value)}
+                            className="cyber-input" 
+                          />
+                        </div>
+                      </div>
+                    </div>
                     <button onClick={handleSave} className="btn-cyber mt-6 flex items-center gap-2">
                       <Save size={16} /> Sync Profile Data
                     </button>
@@ -372,6 +475,88 @@ export default function SettingsModule({ employeeId }: { employeeId: string }) {
                             {m}
                           </button>
                         ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Workspace Background</label>
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div 
+                          className="w-full sm:w-48 h-28 rounded-2xl border-2 border-white/5 bg-white/2 overflow-hidden relative group cursor-pointer"
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e: any) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                  updateSettings(employeeId, { customBackground: reader.result as string });
+                                  setSaved(true);
+                                  setTimeout(() => setSaved(false), 2000);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            };
+                            input.click();
+                          }}
+                        >
+                          {settings.customBackground ? (
+                            <img src={settings.customBackground} className="w-full h-full object-cover" alt="custom bg" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-white/20">
+                              <Layout size={24} />
+                              <span className="text-[10px] mt-2 font-bold uppercase tracking-wider">Default</span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <Camera size={20} className="text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <p className="text-xs text-white/40 leading-relaxed">
+                            Upload a custom image to personalize your digital environment. 
+                            High-resolution landscapes or abstract textures work best with the glassmorphism UI.
+                          </p>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = (e: any) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      updateSettings(employeeId, { customBackground: reader.result as string });
+                                      setSaved(true);
+                                      setTimeout(() => setSaved(false), 2000);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                };
+                                input.click();
+                              }}
+                              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-xs font-bold hover:bg-white/10 transition-all"
+                            >
+                              Choose Image
+                            </button>
+                            {settings.customBackground && (
+                              <button 
+                                onClick={() => {
+                                  updateSettings(employeeId, { customBackground: '' });
+                                  setSaved(true);
+                                  setTimeout(() => setSaved(false), 2000);
+                                }}
+                                className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all"
+                              >
+                                Reset
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
