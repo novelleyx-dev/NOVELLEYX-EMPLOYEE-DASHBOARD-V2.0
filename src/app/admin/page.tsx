@@ -213,12 +213,10 @@ export default function AdminDashboard() {
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <img 
           src="/admin-bg.jpg" 
-          className="w-full h-full object-cover opacity-20 mix-blend-multiply scale-105"
+          className="w-full h-full object-cover mix-blend-overlay scale-105"
+          style={{ opacity: 0.15 }}
           alt="background"
-          style={{ filter: 'contrast(1.1) brightness(0.5)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/95" />
-        <div className="absolute inset-0 bg-[#0a111a]/80" />
       </div>
       <div className="admin-grid-overlay opacity-10 pointer-events-none" />
 
@@ -261,6 +259,7 @@ export default function AdminDashboard() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         className="absolute right-0 mt-2 w-80 glass-card p-3 z-50 border border-white/10"
+                        style={{ backgroundColor: 'var(--bg)' }}
                       >
                         <div className="flex justify-between items-center mb-3 px-2 border-b border-white/5 pb-2">
                           <h4 className="text-xs font-black text-white/40 uppercase tracking-widest">Command Center Alerts</h4>
@@ -353,17 +352,17 @@ export default function AdminDashboard() {
               <button 
                 onClick={() => syncWithCloud()}
                 disabled={isSyncing}
-                className={`p-2 rounded-xl border transition-all ${isSyncing ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400 animate-spin' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
+                className={`p-2 rounded-xl border transition-all ${isSyncing ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
                 title={lastSync ? `Last Synced: ${new Date(lastSync).toLocaleTimeString()}` : 'Sync with Cloud'}
               >
-                <RefreshCw size={18} />
+                <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
               </button>
               <button 
                 onClick={() => window.location.reload()}
                 className="p-2 rounded-xl border border-white/5 text-white/40 hover:bg-white/5 hover:text-white transition-all"
                 title="Refresh System"
               >
-                <Loader2 size={18} className={isSyncing ? 'animate-spin' : ''} />
+                <Loader2 size={18} />
               </button>
               <button 
                 onClick={() => setActiveTab('settings')}
@@ -420,45 +419,7 @@ export default function AdminDashboard() {
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="129,140,248" sub={`${submittedTasks} awaiting review`} />
                 </div>
 
-                {/* System Metrics Management */}
-                <div className="glass-card p-6 border-fuchsia-500/10">
-                  <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Settings size={16} className="text-fuchsia-400" /> System Metrics Management</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Monthly Productivity (Last 7 Months)</label>
-                      <div className="flex gap-2">
-                        {monthlyProductivity.map((val, i) => (
-                          <input 
-                            key={i}
-                            type="number" 
-                            value={val}
-                            onChange={(e) => {
-                              const newData = [...monthlyProductivity];
-                              newData[i] = parseInt(e.target.value) || 0;
-                              updateMonthlyProductivity(newData);
-                            }}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 text-center text-white text-xs font-bold focus:border-fuchsia-400/50 outline-none transition-all"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-4 block">Company Progress (%)</label>
-                      <input 
-                        type="range" 
-                        min="0" max="100" 
-                        value={companyProgress}
-                        onChange={(e) => updateCompanyProgress(parseInt(e.target.value))}
-                        className="w-full accent-fuchsia-500 h-2 bg-white/5 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <div className="flex justify-between mt-2 text-[10px] font-mono text-white/30">
-                        <span>0%</span>
-                        <span className="text-fuchsia-400 font-bold">{companyProgress}%</span>
-                        <span>100%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Workforce Attendance Analytics */}
                   <div className="glass-card p-6 border-cyan-400/10">

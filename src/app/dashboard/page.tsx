@@ -126,16 +126,16 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen transition-colors duration-500 relative overflow-x-hidden">
       {/* Premium Workspace Background Image */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <img
-          src="/admin-bg.jpg"
-          className="w-full h-full object-cover opacity-20 mix-blend-multiply scale-105"
-          alt="background"
-          style={{ filter: 'contrast(1.1) brightness(0.5)' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/95" />
-        <div className="absolute inset-0 bg-[#0a111a]/80" />
-      </div>
+      {!settings?.customBackground && (
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/admin-bg.jpg"
+            className="w-full h-full object-cover mix-blend-overlay scale-105"
+            style={{ opacity: 0.15 }}
+            alt="background"
+          />
+        </div>
+      )}
       <div className="admin-grid-overlay opacity-10 pointer-events-none" />
       {/* Header Bar */}
       <header className="header-bar relative z-[1001]">
@@ -179,6 +179,7 @@ export default function DashboardLayout() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     className="absolute right-0 mt-2 w-56 glass-card p-2 z-50 border border-white/10"
+                    style={{ backgroundColor: 'var(--bg)' }}
                   >
                     <button onClick={() => { setActiveModule('profile'); setUserMenuOpen(false); }} className="nav-item w-full mb-1">
                       <User size={16} /> My Profile
