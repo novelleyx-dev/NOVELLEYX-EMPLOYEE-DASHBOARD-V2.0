@@ -202,6 +202,7 @@ interface NovelleyXStore {
   employees: Employee[];
   addEmployee: (emp: Omit<Employee, 'id' | 'pin' | 'createdAt' | 'avatarSeed' | 'xp' | 'badges' | 'status'>) => string;
   updateEmployeeStatus: (id: string, status: UserStatus) => void;
+  deleteEmployee: (id: string) => void;
   updateEmergencyContact: (id: string, contact: Employee['emergencyContact']) => void;
   updateProfilePhoto: (id: string, photo: string) => void;
   getEmployeeById: (id: string) => Employee | undefined;
@@ -343,7 +344,7 @@ export const useStore = create<NovelleyXStore>()(
           id, pin,
           department: emp.department || DEPARTMENTS[deptIndex],
           role: emp.role || ROLES[deptIndex],
-          status: 'PENDING',
+          status: 'APPROVED', // Bypassing Admin Approval as per request
           createdAt: new Date().toISOString(),
           avatarSeed: emp.name.toLowerCase().replace(/\s/g, '-') + '-' + id,
           xp: 0,
@@ -374,6 +375,16 @@ export const useStore = create<NovelleyXStore>()(
 
       updateEmployeeStatus: (id, status) => {
         set((state) => ({ employees: state.employees.map((e) => e.id === id ? { ...e, status } : e) }));
+      },
+
+      deleteEmployee: (id) => {
+        set((state) => ({
+          employees: state.employees.filter((e) => e.id !== id),
+          tasks: state.tasks.filter((t) => t.assignedTo !== id),
+          attendance: state.attendance.filter((r) => r.employeeId !== id),
+          paystubs: state.paystubs.filter((p) => p.employeeId !== id),
+          tickets: state.tickets.filter((t) => t.employeeId !== id),
+        }));
       },
 
       updateEmergencyContact: (id, contact) => {
@@ -433,7 +444,7 @@ export const useStore = create<NovelleyXStore>()(
         awardXP(set, employeeId, 25);
       },
 
-      getActiveSession: (employeeId) => get().attendance.find((r) => r.employeeId === employeeId && !r.clockOut),
+      getActiveSession: (employeeId) => [...get().attendance].reverse().find((r) => r.employeeId === employeeId && !r.clockOut),
 
       getTodayMinutes: (employeeId) => {
         const today = new Date().toDateString();

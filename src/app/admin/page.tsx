@@ -6,7 +6,7 @@ import {
   ShieldCheck, Users, AlertCircle, LogOut, Search, CheckCircle2, XCircle,
   RefreshCw, Loader2, UserCheck, UserX, MessageSquare, ClipboardList,
   Calendar, FolderOpen, Activity, LayoutDashboard, Menu, Settings, Bell,
-  ExternalLink, Github, Globe, Instagram, Facebook, Youtube, Phone, FileBadge
+  ExternalLink, Github, Globe, Instagram, Facebook, Youtube, Phone, FileBadge, SparklesIcon
 } from 'lucide-react';
 import { useStore, Employee, Designation } from '@/store/useStore';
 import AdminTasksModule from '@/components/modules/admin/TasksModule';
@@ -19,9 +19,10 @@ type AdminTab = 'overview' | 'employees' | 'tasks' | 'comms' | 'meetings' | 'fil
 
 const TABS: { key: AdminTab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'employees', label: 'Employees', icon: Users },
+  { key: 'employees', label: 'Workforce', icon: Users },
+  { key: 'attendance', label: 'Attendance', icon: Clock },
   { key: 'tasks', label: 'Work', icon: ClipboardList },
-  { key: 'comms', label: 'Communications', icon: MessageSquare },
+  { key: 'comms', label: 'Comms', icon: MessageSquare },
   { key: 'meetings', label: 'Meetings', icon: Calendar },
   { key: 'files', label: 'Files', icon: FolderOpen },
   { key: 'badges', label: 'Badges', icon: SparklesIcon },
@@ -33,7 +34,7 @@ function SparklesIcon({ size }: { size: number }) { return <ShieldCheck size={si
 export default function AdminDashboard() {
   const router = useRouter();
   const { 
-    session, setSession, employees, updateEmployeeStatus, tasks, meetings, 
+    session, setSession, employees, updateEmployeeStatus, deleteEmployee, tasks, meetings, 
     getSettings, updateEmployeeRole, attendance, adminNotifications, 
     markAdminNotificationRead, monthlyProductivity, updateMonthlyProductivity,
     companyProgress, updateCompanyProgress, updateEmployeeEvaluation 
@@ -382,9 +383,9 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard icon={Users} label="Total Employees" value={employees.length} color="34,211,238" chartData={monthlyProductivity} />
-                  <StatCard icon={AlertCircle} label="Pending Approval" value={pending} color="245,158,11" chartData={[10, 20, 15, 30, 25, 40, 20]} />
-                  <StatCard icon={UserCheck} label="Approved" value={approved} color="132,204,22" chartData={[20, 40, 30, 50, 40, 60, 70]} />
+                  <StatCard icon={Users} label="Total Workforce" value={employees.length} color="34,211,238" chartData={monthlyProductivity} />
+                  <StatCard icon={Activity} label="Currently Live" value={liveCount} color="132,204,22" sub={`${Math.round((liveCount / (approved || 1)) * 100)}% Engagement`} chartData={[10, 20, 15, 30, 25, 40, 20]} />
+                  <StatCard icon={Clock} label="Today's Hours" value={`${Math.floor(attendance.filter(a => new Date(a.clockIn).toDateString() === new Date().toDateString()).reduce((s, a) => s + (a.shiftDuration || 0), 0) / 60)}h`} color="245,158,11" chartData={[20, 40, 30, 50, 40, 60, 70]} />
                   <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="168,85,247" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
                 </div>
 
@@ -533,40 +534,38 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Quick Management Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="glass-card p-6 border-amber-500/20">
+                <div className="grid grid-cols-1 lg:grid-cols-2                   <div className="glass-card p-6 border-emerald-500/20">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-amber-400 text-sm flex items-center gap-2"><AlertCircle size={14} /> Pending Approvals</h3>
-                      <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{pending} Awaiting Review</span>
+                      <h3 className="font-bold text-emerald-400 text-sm flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Now</h3>
+                      <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{liveCount} Active Sessions</span>
                     </div>
-                    {pending === 0 ? (
+                    {liveCount === 0 ? (
                       <div className="py-8 text-center text-white/10 border border-dashed border-white/10 rounded-xl">
-                        <p className="text-xs">No pending registration requests.</p>
+                        <p className="text-xs">No employees are currently clocked in.</p>
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                        {employees.filter(e => e.status === 'PENDING').map(emp => (
-                          <div key={emp.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-400/5 border border-amber-400/15">
+                        {liveEmployees.map(emp => (
+                          <div key={emp.id} className="flex items-center justify-between p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
                             <div className="flex items-center gap-2">
                               <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp.avatarSeed}&backgroundColor=0a0a1a`} className="w-8 h-8 rounded-lg border border-white/10" alt={emp.name} />
                               <div>
                                 <p className="text-sm font-semibold text-white">{emp.name}</p>
-                                <p className="text-[10px] text-white/30 uppercase tracking-tighter">Requested: {new Date(emp.createdAt).toLocaleDateString()}</p>
+                                <p className="text-[10px] text-white/30 uppercase tracking-tighter">
+                                  {attendance.find(a => a.employeeId === emp.id && !a.clockOut)?.location}
+                                </p>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/30 transition-all">
-                                {processing === emp.id + 'APPROVED' ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-                              </button>
-                              <button onClick={() => handleAction(emp.id, 'REJECTED')} disabled={!!processing} className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center hover:bg-rose-500/30 transition-all">
-                                {processing === emp.id + 'REJECTED' ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
-                              </button>
+                            <div className="text-right">
+                              <p className="text-xs font-bold text-emerald-400">ACTIVE</p>
+                              <p className="text-[9px] text-white/20">Since {new Date(attendance.find(a => a.employeeId === emp.id && !a.clockOut)?.clockIn || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
+ </div>
 
                   <div className="glass-card p-6 border-cyan-500/20">
                     <div className="flex items-center justify-between mb-4">
@@ -766,6 +765,16 @@ export default function AdminDashboard() {
                               <td className="text-xs text-white/40">{new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                               <td className="text-right">
                                 <div className="flex items-center justify-end gap-2">
+                                  <button 
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to terminate ${emp.name}? This action is irreversible.`)) {
+                                        deleteEmployee(emp.id);
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+                                  >
+                                    <UserX size={12} /> Terminate
+                                  </button>
                                   {emp.status === 'PENDING' && (
                                     <>
                                       <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="btn-approve flex items-center gap-1 text-xs">
@@ -780,7 +789,7 @@ export default function AdminDashboard() {
                                     <button onClick={() => handleAction(emp.id, 'REJECTED')} disabled={!!processing} className="btn-reject flex items-center gap-1 text-xs"><XCircle size={11} /> Revoke</button>
                                   )}
                                   {emp.status === 'REJECTED' && (
-                                    <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="btn-approve flex items-center gap-1 text-xs"><RefreshCw size={11} /> Re-approve</button>
+                                    <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="btn-approve flex items-center gap-1 text-xs"><RefreshCw size={11} /> Re-activate</button>
                                   )}
                                 </div>
                               </td>
@@ -794,6 +803,7 @@ export default function AdminDashboard() {
               </div>
             )}
 
+            {activeTab === 'attendance' && <AdminAttendanceModule />}
             {activeTab === 'tasks' && <AdminTasksModule />}
             {activeTab === 'comms' && <AdminChatModule />}
             {activeTab === 'meetings' && <AdminMeetingsModule />}
@@ -962,3 +972,85 @@ function AdminTicketsModule() {
   );
 }
 
+function AdminAttendanceModule() {
+  const { attendance, employees } = useStore();
+  const [search, setSearch] = useState('');
+
+  const filtered = attendance.filter(a => {
+    const emp = employees.find(e => e.id === a.employeeId);
+    return emp?.name.toLowerCase().includes(search.toLowerCase()) || emp?.email.toLowerCase().includes(search.toLowerCase());
+  }).reverse();
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-white">Attendance Audit</h3>
+          <p className="text-white/40 text-sm text-fuchsia-400">Monitoring all workforce sessions and shift compliance.</p>
+        </div>
+        <div className="relative w-full sm:w-64">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input 
+            type="text" 
+            placeholder="Search by name..." 
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="cyber-input pl-9 py-2 text-xs" 
+          />
+        </div>
+      </div>
+
+      <div className="glass-card overflow-hidden">
+        <table className="cyber-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Clock In</th>
+              <th>Clock Out</th>
+              <th>Duration</th>
+              <th>Location</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={6} className="text-center py-20 text-white/20">No records found.</td></tr>
+            ) : (
+              filtered.map(r => {
+                const emp = employees.find(e => e.id === r.employeeId);
+                const isLive = !r.clockOut;
+                return (
+                  <tr key={r.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${emp?.avatarSeed || 'system'}&backgroundColor=0a0a1a`} className="w-6 h-6 rounded" alt="" />
+                        <span className="font-bold text-white text-xs">{emp?.name || 'Terminated User'}</span>
+                      </div>
+                    </td>
+                    <td className="text-xs text-white/50">{new Date(r.clockIn).toLocaleString()}</td>
+                    <td className="text-xs text-white/50">{r.clockOut ? new Date(r.clockOut).toLocaleString() : '—'}</td>
+                    <td>
+                      {r.shiftDuration != null ? (
+                        <span className={`text-xs font-mono font-bold ${r.shiftDuration >= 240 ? 'text-lime-400' : 'text-amber-400'}`}>
+                          {Math.floor(r.shiftDuration / 60)}h {r.shiftDuration % 60}m
+                        </span>
+                      ) : <span className="text-emerald-400 animate-pulse text-[10px] font-black uppercase">Live</span>}
+                    </td>
+                    <td className="text-[10px] text-white/30 font-mono">{r.location}</td>
+                    <td>
+                      {isLive ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-black border border-emerald-500/20">PRESENT</span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-white/5 text-white/40 text-[9px] font-black border border-white/10">COMPLETED</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

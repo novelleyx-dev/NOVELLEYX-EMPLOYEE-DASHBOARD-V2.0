@@ -100,6 +100,10 @@ export default function LoginPage() {
       setError('Enter your complete 12-digit PIN.');
       return;
     }
+    if (secretPin !== '2026') {
+      setError('Invalid Secret PIN (2FA failed).');
+      return;
+    }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1000));
     const emp = employees.find((e) => e.pin === empPin);
@@ -108,13 +112,6 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    if (emp.status === 'PENDING') {
-      setError('Your account is awaiting admin approval.');
-      setLoading(false);
-      return;
-    }
-    if (emp.status === 'REJECTED') {
-      setError('Your account has been rejected. Contact admin.');
       setLoading(false);
       return;
     }
@@ -281,6 +278,30 @@ export default function LoginPage() {
                               <div key={i} className={`h-0.5 flex-1 rounded-full transition-all duration-200
                                 ${i < empPin.length ? 'bg-cyan-400 shadow-[0_0_4px_#22d3ee]' : 'bg-white/10'}`} />
                             ))}
+                          </div>
+                        </div>
+
+                        {/* 2FA Secret PIN */}
+                        <div className="mt-6">
+                          <label className="text-xs font-semibold text-cyan-400/70 uppercase tracking-wider mb-2 block">
+                            <ShieldCheck size={10} className="inline mr-1" /> 2FA System Authentication
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="password"
+                              value={secretPin}
+                              onChange={(e) => {
+                                setSecretPin(e.target.value.replace(/\D/g, '').slice(0, 4));
+                                clearMessages();
+                              }}
+                              placeholder="··········"
+                              className="cyber-input font-mono text-center text-xl tracking-[0.8em]"
+                              maxLength={4}
+                              onKeyDown={(e) => e.key === 'Enter' && handleEmployeeLogin()}
+                            />
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                              <span className="text-[10px] font-bold text-white/20 uppercase">4-Digit</span>
+                            </div>
                           </div>
                         </div>
                       </div>
