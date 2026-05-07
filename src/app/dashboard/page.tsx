@@ -34,17 +34,29 @@ import CalendarModule from '@/components/modules/CalendarModule';
 
 export default function DashboardLayout() {
   const router = useRouter();
-  const { _hasHydrated, session, setSession, employees, tasks, meetings, getSettings } = useStore();
+  const { _hasHydrated, session, setSession, employees, tasks, meetings, getSettings, syncWithCloud } = useStore();
   const [activeModule, setActiveModule] = useState<Module>('profile');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const hasSeenWelcome = sessionStorage.getItem('empWelcome');
     if (!hasSeenWelcome) {
       setWelcomeOpen(true);
       sessionStorage.setItem('empWelcome', 'true');
     }
+    
+    // Initial Cloud Sync
+    syncWithCloud();
+    
+    // Periodic Auto-Sync
+    const syncInterval = setInterval(() => {
+      syncWithCloud();
+    }, 60000); // 1 minute for employees
+
+    return () => clearInterval(syncInterval);
   }, []);
 
   const emp = session?.type === 'employee' ? employees.find(e => e.id === session.employeeId) : null;
@@ -61,7 +73,7 @@ export default function DashboardLayout() {
       const vars: any = {
         'cyber-dark': { '--bg': '#030712', '--accent': '#22d3ee', '--accent2': '#a855f7', '--card-bg': 'rgba(255,255,255,0.04)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
         'night': { '--bg': '#0a0e1a', '--accent': '#818cf8', '--accent2': '#a78bfa', '--card-bg': 'rgba(129,140,248,0.05)', '--card-border': 'rgba(129,140,248,0.12)', '--text': '#e2e8f0' },
-        'day': { '--bg': '#f8fafc', '--accent': '#2563eb', '--accent2': '#7c3aed', '--card-bg': 'rgba(255,255,255,0.9)', '--card-border': 'rgba(0,0,0,0.08)', '--text': '#0f172a' },
+        'day': { '--bg': '#1B2631', '--accent': '#5DADE2', '--accent2': '#AED6F1', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#E1E8ED' },
         'forest': { '--bg': '#0d1f0f', '--accent': '#4ade80', '--accent2': '#86efac', '--card-bg': 'rgba(74,222,128,0.04)', '--card-border': 'rgba(74,222,128,0.12)', '--text': '#ecfdf5' },
         'ocean': { '--bg': '#050e1a', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
         'zen': { '--bg': '#1a1510', '--accent': '#d97706', '--accent2': '#92400e', '--card-bg': 'rgba(217,119,6,0.06)', '--card-border': 'rgba(217,119,6,0.15)', '--text': '#fef3c7' },
@@ -112,7 +124,19 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen transition-colors duration-500">
+    <div className="min-h-screen transition-colors duration-500 relative overflow-x-hidden">
+      {/* Premium Workspace Background Image */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <img 
+          src="/admin-bg.jpg" 
+          className="w-full h-full object-cover opacity-20 mix-blend-multiply scale-105"
+          alt="background"
+          style={{ filter: 'contrast(1.1) brightness(0.5)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/95" />
+        <div className="absolute inset-0 bg-[#0a111a]/80" />
+      </div>
+      <div className="admin-grid-overlay opacity-10 pointer-events-none" />
       {/* Header Bar */}
       <header className="header-bar relative z-[1001]">
         <div className="flex items-center gap-3">

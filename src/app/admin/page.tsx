@@ -40,7 +40,8 @@ export default function AdminDashboard() {
     adminNotifications, markAdminNotificationRead, monthlyProductivity, 
     updateMonthlyProductivity, companyProgress, updateCompanyProgress, 
     updateEmployeeEvaluation, scheduleMeeting, assignTask, updateTaskStatus, 
-    extendTaskDeadline, sendFile, updateSettings, addEmployee
+    extendTaskDeadline, sendFile, updateSettings, addEmployee, syncWithCloud, 
+    isSyncing, lastSync
   } = useStore();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
@@ -78,7 +79,19 @@ export default function AdminDashboard() {
       }
     };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    
+    // Initial Cloud Sync
+    syncWithCloud();
+    
+    // Periodic Auto-Sync (every 30s)
+    const syncInterval = setInterval(() => {
+      syncWithCloud();
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      clearInterval(syncInterval);
+    };
   }, []);
 
   const settings = getSettings('admin');
@@ -333,11 +346,19 @@ export default function AdminDashboard() {
               </div>
 
               <button 
+                onClick={() => syncWithCloud()}
+                disabled={isSyncing}
+                className={`p-2 rounded-xl border transition-all ${isSyncing ? 'bg-cyan-400/10 border-cyan-400 text-cyan-400 animate-spin' : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white'}`}
+                title={lastSync ? `Last Synced: ${new Date(lastSync).toLocaleTimeString()}` : 'Sync with Cloud'}
+              >
+                <RefreshCw size={18} />
+              </button>
+              <button 
                 onClick={() => window.location.reload()}
                 className="p-2 rounded-xl border border-white/5 text-white/40 hover:bg-white/5 hover:text-white transition-all"
                 title="Refresh System"
               >
-                <RefreshCw size={18} />
+                <Loader2 size={18} className={isSyncing ? 'animate-spin' : ''} />
               </button>
               <button 
                 onClick={() => setActiveTab('settings')}

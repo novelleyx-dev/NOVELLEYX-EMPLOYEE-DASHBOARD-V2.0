@@ -8,6 +8,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 // ─── Type Definitions ───────────────────────────────────────────────────────
 
@@ -267,6 +268,11 @@ interface NovelleyXStore {
   updateEmployeeEvaluation: (id: string, score: number, remarks: string) => void;
   _hasHydrated: boolean;
   setHasHydrated: (val: boolean) => void;
+
+  // Cloud Sync
+  syncWithCloud: () => Promise<void>;
+  isSyncing: boolean;
+  lastSync: string | null;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -336,6 +342,9 @@ export const useStore = create<NovelleyXStore>()(
       _hasHydrated: false,
       setHasHydrated: (val) => set({ _hasHydrated: val }),
 
+      isSyncing: false,
+      lastSync: null,
+
       // ── Employees ──────────────────────────────────────────────────────────
       employees: [],
 
@@ -373,11 +382,14 @@ export const useStore = create<NovelleyXStore>()(
           true
         );
 
+        get().syncWithCloud();
+
         return pin;
       },
 
       updateEmployeeStatus: (id, status) => {
         set((state) => ({ employees: state.employees.map((e) => e.id === id ? { ...e, status } : e) }));
+        get().syncWithCloud();
       },
 
       deleteEmployee: (id) => {
@@ -642,6 +654,100 @@ export const useStore = create<NovelleyXStore>()(
         set((state) => ({
           employees: state.employees.map((e) => e.id === id ? { ...e, evaluation: { score, remarks, lastUpdated: new Date().toISOString() } } : e)
         }));
+      },
+
+      // ── Cloud Sync ──────────────────────────────────────────────────────────
+      syncWithCloud: async () => {
+        if (get().isSyncing) return;
+        set({ isSyncing: true });
+
+        try {
+          // 1. Sync Employees
+          const { data: cloudEmps, error: empError } = await supabase.from('employees').select('*');
+          if (!empError && cloudEmps) {
+            const localEmps = get().employees;
+            const mergedEmps = [...localEmps];
+            cloudEmps.forEach((c: Employee) => {
+              const idx = mergedEmps.findIndex(e => e.id === c.id);
+              if (idx > -1) mergedEmps[idx] = c;
+              else mergedEmps.push(c);
+            });
+            set({ employees: mergedEmps });
+            for (const emp of mergedEmps) {
+              await supabase.from('employees').upsert(emp);
+            }
+          }
+
+          // 2. Sync Notifications
+          const { data: cloudNotifs, error: notifError } = await supabase.from('admin_notifications').select('*');
+          if (!notifError && cloudNotifs) {
+            const localNotifs = get().adminNotifications;
+            const mergedNotifs = [...localNotifs];
+            cloudNotifs.forEach((c: AdminNotification) => {
+              const idx = mergedNotifs.findIndex(n => n.id === c.id);
+              if (idx > -1) mergedNotifs[idx] = c;
+              else mergedNotifs.push(c);
+            });
+            set({ adminNotifications: mergedNotifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) });
+            for (const notif of mergedNotifs) {
+              await supabase.from('admin_notifications').upsert(notif);
+            }
+          }
+
+          // 3. Sync Tasks
+          const { data: cloudTasks, error: taskError } = await supabase.from('tasks').select('*');
+          if (!taskError && cloudTasks) {
+            const localTasks = get().tasks;
+            const mergedTasks = [...localTasks];
+            cloudTasks.forEach((c: Task) => {
+              const idx = mergedTasks.findIndex(t => t.id === c.id);
+              if (idx > -1) mergedTasks[idx] = c;
+              else mergedTasks.push(c);
+            });
+            set({ tasks: mergedTasks });
+            for (const task of mergedTasks) {
+              await supabase.from('tasks').upsert(task);
+            }
+          }
+
+          // 4. Sync Attendance
+          const { data: cloudAttendance, error: attError } = await supabase.from('attendance').select('*');
+          if (!attError && cloudAttendance) {
+            const localAtt = get().attendance;
+            const mergedAtt = [...localAtt];
+            cloudAttendance.forEach((c: AttendanceRecord) => {
+              const idx = mergedAtt.findIndex(a => a.id === c.id);
+              if (idx > -1) mergedAtt[idx] = c;
+              else mergedAtt.push(c);
+            });
+            set({ attendance: mergedAtt });
+            for (const att of mergedAtt) {
+              await supabase.from('attendance').upsert(att);
+            }
+          }
+
+          // 5. Sync Tickets
+          const { data: cloudTickets, error: ticketError } = await supabase.from('tickets').select('*');
+          if (!ticketError && cloudTickets) {
+            const localTickets = get().tickets;
+            const mergedTickets = [...localTickets];
+            cloudTickets.forEach((c: SupportTicket) => {
+              const idx = mergedTickets.findIndex(t => t.id === c.id);
+              if (idx > -1) mergedTickets[idx] = c;
+              else mergedTickets.push(c);
+            });
+            set({ tickets: mergedTickets });
+            for (const ticket of mergedTickets) {
+              await supabase.from('tickets').upsert(ticket);
+            }
+          }
+
+          set({ lastSync: new Date().toISOString() });
+        } catch (err) {
+          console.error('Sync failed:', err);
+        } finally {
+          set({ isSyncing: false });
+        }
       },
     }),
     {
