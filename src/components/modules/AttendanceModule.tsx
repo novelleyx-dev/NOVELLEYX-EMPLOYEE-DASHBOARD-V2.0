@@ -113,32 +113,6 @@ export default function AttendanceModule({ employeeId }: { employeeId: string })
         </div>
       </div>
 
-      {/* Weekly Graph */}
-      <div className="glass-card p-6">
-        <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2"><TrendingUp size={14} className="text-cyan-400" /> This Week</h3>
-        <div className="flex items-end gap-3 h-24">
-          {week.map((day, i) => {
-            const pct = Math.min(100, (day.mins / REQUIRED_MINUTES) * 100);
-            const isToday = day.date.toDateString() === new Date().toDateString();
-            const met = day.mins >= REQUIRED_MINUTES;
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${day.label}: ${Math.floor(day.mins / 60)}h ${day.mins % 60}m`}>
-                <div className="w-full rounded-t-sm flex flex-col justify-end" style={{ height: '80px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <motion.div initial={{ height: 0 }} animate={{ height: `${pct}%` }} transition={{ delay: i * 0.08, duration: 0.6 }}
-                    className="w-full rounded-t-sm"
-                    style={{ background: met ? 'linear-gradient(180deg, #84cc16, #22c55e)' : isToday ? 'linear-gradient(180deg, #22d3ee, #3b82f6)' : 'linear-gradient(180deg, rgba(34,211,238,0.5), rgba(168,85,247,0.3))' }} />
-                </div>
-                <span className={`text-xs font-semibold ${isToday ? 'text-cyan-400' : 'text-white/30'}`}>{day.label}</span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-4 mt-3 text-xs text-white/30">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-lime-400" /> Goal met (4h)</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-cyan-400" /> Today</span>
-        </div>
-      </div>
-
       {/* History */}
       <div className="glass-card p-5">
         <h3 className="font-bold text-white text-sm mb-4">Recent Records</h3>

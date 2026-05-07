@@ -24,7 +24,7 @@ type LoginMode = 'admin' | 'employee';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setSession, employees, addEmployee, syncWithCloud } = useStore();
+  const { setSession, employees, addEmployee, syncWithCloud, _hasHydrated } = useStore();
 
   // Tab state
   const [tab, setTab] = useState<Tab>('login');
@@ -57,8 +57,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
-    syncWithCloud();
-  }, []);
+    if (_hasHydrated) syncWithCloud();
+  }, [_hasHydrated]);
 
   // If already logged in, redirect
   const session = useStore((s) => s.session);

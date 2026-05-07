@@ -47,17 +47,17 @@ export default function DashboardLayout() {
       setWelcomeOpen(true);
       sessionStorage.setItem('empWelcome', 'true');
     }
-    
+
     // Initial Cloud Sync
-    syncWithCloud();
-    
+    if (_hasHydrated) syncWithCloud();
+
     // Periodic Auto-Sync
     const syncInterval = setInterval(() => {
-      syncWithCloud();
+      if (_hasHydrated) syncWithCloud();
     }, 60000); // 1 minute for employees
 
     return () => clearInterval(syncInterval);
-  }, []);
+  }, [_hasHydrated]);
 
   const emp = session?.type === 'employee' ? employees.find(e => e.id === session.employeeId) : null;
   const settings = emp ? getSettings(emp.id) : null;
@@ -73,15 +73,15 @@ export default function DashboardLayout() {
       const vars: any = {
         'cyber-dark': { '--bg': '#030712', '--accent': '#22d3ee', '--accent2': '#a855f7', '--card-bg': 'rgba(255,255,255,0.04)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#f1f5f9' },
         'night': { '--bg': '#0a0e1a', '--accent': '#818cf8', '--accent2': '#a78bfa', '--card-bg': 'rgba(129,140,248,0.05)', '--card-border': 'rgba(129,140,248,0.12)', '--text': '#e2e8f0' },
-        'day': { '--bg': '#1B2631', '--accent': '#5DADE2', '--accent2': '#AED6F1', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#E1E8ED' },
+        'day': { '--bg': '#1B2631', '--accent': '#5DADE2', '--accent2': '#AED6F1', '--card-bg': 'rgba(255,255,255,0.03)', '--card-border': 'rgba(255,255,255,0.08)', '--text': '#08141eff' },
         'forest': { '--bg': '#0d1f0f', '--accent': '#4ade80', '--accent2': '#86efac', '--card-bg': 'rgba(74,222,128,0.04)', '--card-border': 'rgba(74,222,128,0.12)', '--text': '#ecfdf5' },
-        'ocean': { '--bg': '#050e1a', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
+        'ocean': { '--bg': '#183f72ff', '--accent': '#38bdf8', '--accent2': '#818cf8', '--card-bg': 'rgba(56,189,248,0.04)', '--card-border': 'rgba(56,189,248,0.1)', '--text': '#e0f2fe' },
         'zen': { '--bg': '#1a1510', '--accent': '#d97706', '--accent2': '#92400e', '--card-bg': 'rgba(217,119,6,0.06)', '--card-border': 'rgba(217,119,6,0.15)', '--text': '#fef3c7' },
       };
       const currentVars = vars[settings.theme];
       if (currentVars) {
         Object.entries(currentVars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v as string));
-        
+
         if (settings.customBackground) {
           document.body.style.backgroundImage = `url(${settings.customBackground})`;
           document.body.style.backgroundSize = 'cover';
@@ -127,8 +127,8 @@ export default function DashboardLayout() {
     <div className="min-h-screen transition-colors duration-500 relative overflow-x-hidden">
       {/* Premium Workspace Background Image */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <img 
-          src="/admin-bg.jpg" 
+        <img
+          src="/admin-bg.jpg"
           className="w-full h-full object-cover opacity-20 mix-blend-multiply scale-105"
           alt="background"
           style={{ filter: 'contrast(1.1) brightness(0.5)' }}
@@ -163,18 +163,18 @@ export default function DashboardLayout() {
           </div>
 
           <div className="relative">
-            <button 
+            <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all"
             >
               <Menu size={20} />
             </button>
-            
+
             <AnimatePresence>
               {userMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -202,8 +202,8 @@ export default function DashboardLayout() {
       <div className="floating-nav-container">
         <nav className="floating-nav">
           {NAV_ITEMS.filter(item => !['settings', 'profile'].includes(item.key)).map(({ key, label, icon: Icon }) => (
-            <button 
-              key={key} 
+            <button
+              key={key}
               onClick={() => setActiveModule(key)}
               className={`floating-nav-item ${activeModule === key ? 'active' : ''}`}
             >
@@ -218,14 +218,14 @@ export default function DashboardLayout() {
             </button>
           ))}
           <div className="w-px bg-white/10 mx-1 self-stretch" />
-          <button 
+          <button
             onClick={() => setActiveModule('profile')}
             className={`floating-nav-item ${activeModule === 'profile' ? 'active' : ''}`}
             title="Profile"
           >
             <User size={16} />
           </button>
-          <button 
+          <button
             onClick={() => setActiveModule('settings')}
             className={`floating-nav-item ${activeModule === 'settings' ? 'active' : ''}`}
             title="Settings"
@@ -237,11 +237,11 @@ export default function DashboardLayout() {
 
       <main className="page-content-wrapper relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <AnimatePresence mode="wait">
-          <motion.div 
-            key={activeModule} 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -20 }} 
+          <motion.div
+            key={activeModule}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
           >
             <ActiveModuleComponent />
@@ -254,7 +254,7 @@ export default function DashboardLayout() {
         {welcomeOpen && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setWelcomeOpen(false)} />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -266,10 +266,10 @@ export default function DashboardLayout() {
               <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome, {emp.name}</h2>
               <p className="text-cyan-400 font-mono text-sm mb-6 uppercase tracking-widest">{emp.role} · {emp.department}</p>
               <p className="text-white/60 text-sm leading-relaxed mb-8">
-                Your personal NovelleyX workspace is active. 
+                Your personal NovelleyX workspace is active.
                 Track your shifts, manage tasks, and connect with your team in real-time.
               </p>
-              <button 
+              <button
                 onClick={() => setWelcomeOpen(false)}
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black uppercase tracking-widest hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all"
               >

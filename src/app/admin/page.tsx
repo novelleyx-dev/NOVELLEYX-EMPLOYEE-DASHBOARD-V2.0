@@ -81,11 +81,11 @@ export default function AdminDashboard() {
     window.addEventListener('storage', handleStorage);
     
     // Initial Cloud Sync
-    syncWithCloud();
+    if (_hasHydrated) syncWithCloud();
     
     // Periodic Auto-Sync (every 30s)
     const syncInterval = setInterval(() => {
-      syncWithCloud();
+      if (_hasHydrated) syncWithCloud();
     }, 30000);
 
     return () => {
@@ -126,12 +126,18 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!mounted || !_hasHydrated) return;
-    if (!session || session.type !== 'admin') {
+    const currentEmpCheck = session?.type === 'employee' ? employees.find(e => e.id === session.employeeId) : null;
+    const isHR = currentEmpCheck?.role === 'HR';
+    
+    if (!session || (session.type !== 'admin' && !isHR)) {
       router.replace('/');
     }
-  }, [session, router, mounted, _hasHydrated]);
+  }, [session, router, mounted, _hasHydrated, employees]);
 
-  if (!mounted || !_hasHydrated || !session || session.type !== 'admin') return null;
+  const currentEmpCheck = session?.type === 'employee' ? employees.find(e => e.id === session.employeeId) : null;
+  const isHR = currentEmpCheck?.role === 'HR';
+
+  if (!mounted || !_hasHydrated || !session || (session.type !== 'admin' && !isHR)) return null;
 
   const pending = employees.filter(e => e.status === 'PENDING').length;
   const approved = employees.filter(e => e.status === 'APPROVED').length;
@@ -171,21 +177,21 @@ export default function AdminDashboard() {
     return acc;
   }, {} as Record<string, number>);
 
-  const MiniChart = ({ color, data }: { color: string; data: number[] }) => (
-    <div className="flex items-end gap-0.5 h-6 w-16">
-      {data.map((v, i) => (
-        <motion.div
-          key={i}
-          initial={{ height: 0 }}
-          animate={{ height: `${v}%` }}
-          className="flex-1 rounded-t-[1px]"
-          style={{ background: `rgba(${color}, 0.5)` }}
-        />
-      ))}
-    </div>
-  );
+  const downloadEmployeeData = () => {
+    const dataString = employees.map(e => 
+      `Name: ${e.name}\nEmail: ${e.email}\nRole: ${e.role}\nDepartment: ${e.department}\nStatus: ${e.status}\nPIN: ${e.pin}\nJoined: ${new Date(e.createdAt).toLocaleDateString()}\n--------------------------`
+    ).join('\n');
+    
+    const blob = new Blob([dataString], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'NovelleyX_Employee_Data.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const StatCard = ({ icon: Icon, label, value, color, sub, chartData }: { icon: any; label: string; value: number | string; color: string; sub?: string; chartData?: number[] }) => (
+  const StatCard = ({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: number | string; color: string; sub?: string }) => (
     <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-5 flex items-center gap-4 cursor-default group">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ background: `rgba(${color}, 0.1)`, border: `1px solid rgba(${color}, 0.3)` }}>
@@ -195,7 +201,6 @@ export default function AdminDashboard() {
         <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">{label}</p>
         <div className="flex items-baseline gap-2">
           <p className="text-2xl font-black text-white mt-0.5">{value}</p>
-          {chartData && <MiniChart color={color} data={chartData} />}
         </div>
         {sub && <p className="text-xs text-white/30 truncate">{sub}</p>}
       </div>
@@ -297,7 +302,7 @@ export default function AdminDashboard() {
                                   </div>
                                   <p className="text-[11px] text-white/70 leading-relaxed font-medium">{n.message}</p>
                                   
-                                  {n.type === 'SYSTEM' && n.relatedId && employees.find(e => e.id === n.relatedId)?.status === 'PENDING' && (
+                                  {n.type === 'SYSTEM' && n.relatedId && employees.find(e => e.id === n.relatedId)?.status === 'PENDING' && !isHR && (
                                     <div className="flex gap-2 mt-3 pt-3 border-t border-white/10">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); handleAction(n.relatedId!, 'APPROVED'); }}
@@ -367,6 +372,11 @@ export default function AdminDashboard() {
               >
                 <Settings size={18} />
               </button>
+              {isHR && (
+                <button onClick={() => router.push('/dashboard')} className="btn-approve flex items-center gap-2 py-2 px-4 text-xs">
+                  My Dashboard
+                </button>
+              )}
               <button onClick={() => setSession(null)} className="btn-reject flex items-center gap-2 py-2 px-4 text-xs">
                 <LogOut size={14} /> Exit System
               </button>
@@ -404,10 +414,10 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard icon={Users} label="Total Workforce" value={employees.length} color="93,173,226" chartData={monthlyProductivity} />
-                  <StatCard icon={Activity} label="Currently Live" value={liveCount} color="132,204,22" sub={`${Math.round((liveCount / (approved || 1)) * 100)}% Engagement`} chartData={[10, 20, 15, 30, 25, 40, 20]} />
-                  <StatCard icon={Clock} label="Today's Hours" value={`${Math.floor(attendance.filter(a => new Date(a.clockIn).toDateString() === new Date().toDateString()).reduce((s, a) => s + (a.shiftDuration || 0), 0) / 60)}h`} color="91,192,222" chartData={[20, 40, 30, 50, 40, 60, 70]} />
-                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="129,140,248" sub={`${submittedTasks} awaiting review`} chartData={[40, 30, 50, 40, 60, 50, 70]} />
+                  <StatCard icon={Users} label="Total Workforce" value={employees.length} color="93,173,226" />
+                  <StatCard icon={Activity} label="Currently Live" value={liveCount} color="132,204,22" sub={`${Math.round((liveCount / (approved || 1)) * 100)}% Engagement`} />
+                  <StatCard icon={Clock} label="Today's Hours" value={`${Math.floor(attendance.filter(a => new Date(a.clockIn).toDateString() === new Date().toDateString()).reduce((s, a) => s + (a.shiftDuration || 0), 0) / 60)}h`} color="91,192,222" />
+                  <StatCard icon={ClipboardList} label="Open Tasks" value={openTasks} color="129,140,248" sub={`${submittedTasks} awaiting review`} />
                 </div>
 
                 {/* System Metrics Management */}
@@ -652,13 +662,16 @@ export default function AdminDashboard() {
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees…" className="cyber-input pl-9" />
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {(['ALL', 'APPROVED', 'REJECTED'] as const).map(f => (
+                    {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
                       <button key={f} onClick={() => setFilter(f as any)}
                         className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border
                           ${filter === f ? 'bg-cyan-400/10 border-cyan-400/40 text-cyan-400' : 'border-white/10 text-white/40 hover:text-white/70'}`}>
                         {f}
                       </button>
                     ))}
+                    <button onClick={downloadEmployeeData} className="px-3 py-2 rounded-lg text-xs font-bold transition-all border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 flex items-center gap-2 ml-auto">
+                      <FolderOpen size={14} /> Download Data
+                    </button>
                   </div>
                 </div>
                 <div className="glass-card overflow-hidden">
@@ -785,17 +798,19 @@ export default function AdminDashboard() {
                               <td className="text-xs text-white/40">{new Date(emp.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                               <td className="text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                  <button 
-                                    onClick={() => {
-                                      if (confirm(`Are you sure you want to terminate ${emp.name}? This action is irreversible.`)) {
-                                        deleteEmployee(emp.id);
-                                      }
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
-                                  >
-                                    <UserX size={12} /> Terminate
-                                  </button>
-                                  {emp.status === 'PENDING' && (
+                                  {!isHR && (
+                                    <button 
+                                      onClick={() => {
+                                        if (confirm(`Are you sure you want to terminate ${emp.name}? This action is irreversible.`)) {
+                                          deleteEmployee(emp.id);
+                                        }
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+                                    >
+                                      <UserX size={12} /> Terminate
+                                    </button>
+                                  )}
+                                  {emp.status === 'PENDING' && !isHR && (
                                     <>
                                       <button onClick={() => handleAction(emp.id, 'APPROVED')} disabled={!!processing} className="btn-approve flex items-center gap-1 text-xs">
                                         {processing === emp.id + 'APPROVED' ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />} Approve

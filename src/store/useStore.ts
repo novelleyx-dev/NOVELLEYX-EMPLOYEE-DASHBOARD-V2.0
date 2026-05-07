@@ -658,7 +658,7 @@ export const useStore = create<NovelleyXStore>()(
 
       // ── Cloud Sync ──────────────────────────────────────────────────────────
       syncWithCloud: async () => {
-        if (get().isSyncing) return;
+        if (!get()._hasHydrated || get().isSyncing) return;
         set({ isSyncing: true });
 
         try {
